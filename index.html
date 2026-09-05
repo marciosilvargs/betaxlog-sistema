@@ -31,9 +31,9 @@
                 <h1>BETAXLOG</h1>
             </div>
 
-            <small id="infoUltimoBackup">
+            <span id="infoUltimoBackup" class="backup-info">
                 Conectando ao Supabase...
-            </small>
+            </span>
         </div>
 
         <div class="header-actions">
@@ -88,7 +88,11 @@
             <div class="grid-container">
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Montagem da escala</h2>
+                        <div>
+                            <span class="eyebrow">OPERAÇÃO</span>
+                            <h2>Montagem da escala</h2>
+                        </div>
+
                         <span class="section-icon">📅</span>
                     </div>
 
@@ -155,12 +159,19 @@
 
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Indisponibilidade</h2>
+                        <div>
+                            <span class="eyebrow">
+                                DISPONIBILIDADE
+                            </span>
+
+                            <h2>Indisponibilidade</h2>
+                        </div>
+
                         <span class="section-icon">🚫</span>
                     </div>
 
                     <p class="helper-text">
-                        Use a lupa para pesquisar o motorista e marque quem não estará disponível.
+                        Pesquise pela lupa e marque os motoristas indisponíveis.
                     </p>
 
                     <div class="search-box">
@@ -189,14 +200,15 @@
                     id="avisoPreviaNaoSalva"
                     class="orientation-message"
                     hidden>
-                    ⚠️ Esta prévia ainda não foi salva.
-                    Clique em <strong>Salvar prévia</strong> antes de baixar a imagem
-                    ou confirmar a escala como definitiva.
+                    ⚠️ Esta prévia ainda não foi salva. Clique em
+                    <strong>Salvar prévia</strong> antes de baixar a imagem
+                    ou confirmar a escala.
                 </div>
 
                 <div id="areaCapturaImagem">
                     <div class="card-title-flex">
                         <div>
+                            <span class="eyebrow">BETAXLOG</span>
                             <h2>Escala operacional</h2>
                             <p id="dataSubtituloImagem"></p>
                         </div>
@@ -247,7 +259,7 @@
                         id="btnBaixarImagem"
                         class="btn btn-secondary"
                         type="button"
-                        onclick="gerarImagemEscalaECompartilhar()"
+                        onclick="baixarImagemEscala()"
                         disabled>
                         📸 Baixar imagem
                     </button>
@@ -273,7 +285,10 @@
             <div class="grid-container">
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Novo motorista</h2>
+                        <div>
+                            <span class="eyebrow">CADASTRO</span>
+                            <h2>Motoristas</h2>
+                        </div>
 
                         <span
                             id="contadorTotalMotoristas"
@@ -292,7 +307,7 @@
                         maxlength="100">
 
                     <label for="telMotorista">
-                        Telefone com DDD
+                        Telefone
                     </label>
 
                     <input
@@ -326,7 +341,7 @@
                     </button>
 
                     <label for="filtroMotorista">
-                        Pesquisar cadastro
+                        Pesquisar motorista
                     </label>
 
                     <div class="search-box">
@@ -353,7 +368,10 @@
                 </article>
 
                 <article class="card">
-                    <h2>Prioridade e rodízio</h2>
+                    <div class="card-title-flex">
+                        <h2>Prioridade e rodízio</h2>
+                        <span>⭐</span>
+                    </div>
 
                     <p class="helper-text">
                         Motoristas prioritários ficam fora do rodízio automático.
@@ -422,7 +440,10 @@
 
         <section id="viewRelatorios" class="view" hidden>
             <article class="card">
-                <h2>Relatórios</h2>
+                <div class="card-title-flex">
+                    <h2>Relatórios</h2>
+                    <span>📊</span>
+                </div>
 
                 <div class="form-grid">
                     <div>
@@ -465,6 +486,10 @@
                                 Últimos 7 dias
                             </option>
 
+                            <option value="semestral">
+                                Últimos 6 meses
+                            </option>
+
                             <option value="anual">
                                 Este ano
                             </option>
@@ -484,7 +509,7 @@
                         class="btn btn-secondary"
                         type="button"
                         onclick="exportarRelatorioPDF()">
-                        📄 Exportar PDF
+                        📄 PDF
                     </button>
                 </div>
             </article>
@@ -617,7 +642,10 @@
         <div class="modal-content">
             <h2>Administração</h2>
 
-            <p id="listaUsuariosCadastrados"></p>
+            <p
+                id="listaUsuariosCadastrados"
+                class="helper-text">
+            </p>
 
             <button
                 class="btn btn-danger btn-block"
@@ -635,6 +663,9 @@
         </div>
     </div>
 
-    <div id="toastContainer" class="toast-container"></div>
+    <div
+        id="toastContainer"
+        class="toast-container">
+    </div>
 </body>
 </html>
