@@ -1,631 +1,2688 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --primary: #1e3a8a;
-    --primary-dark: #172554;
-    --secondary: #64748b;
-    --success: #059669;
-    --danger: #dc2626;
-    --warning: #d97706;
-    --text: #334155;
-    --muted: #64748b;
-    --border: #cbd5e1;
-    --background: #f1f5f9;
-    --card: #ffffff;
-}
-
-body {
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
-    background: var(--background);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-}
-
-button,
-input,
-select {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-button:disabled {
-    cursor: not-allowed;
-    opacity: .5;
-}
-
-h1,
-h2,
-h3,
-h4 {
-    color: #0f172a;
-}
-
-h2 {
-    margin-top: 0;
-    font-size: 1.2rem;
-}
-
-label {
-    display: block;
-    margin: 10px 0 5px;
-    color: #334155;
-    font-size: .88rem;
-    font-weight: 600;
-}
-
-input,
-select {
-    width: 100%;
-    min-height: 42px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    outline: none;
-    background: #fff;
-    color: var(--text);
-}
-
-input:focus,
-select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(30, 58, 138, .15);
-}
-
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.brand-icon {
-    font-size: 2rem;
-}
-
-.brand h1 {
-    margin: 0;
-    color: var(--primary);
-    font-size: 1.8rem;
-}
-
-.backup-info {
-    color: var(--muted);
-    font-size: .78rem;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.user-badge {
-    padding: 8px 10px;
-    border-radius: 20px;
-    background: #dbeafe;
-    color: var(--primary);
-    font-size: .8rem;
-    font-weight: 600;
-}
-
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e2e8f0;
-}
-
-.tab-btn {
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 7px;
-    background: transparent;
-    color: var(--muted);
-    font-weight: 600;
-}
-
-.tab-btn:hover {
-    background: #e2e8f0;
-}
-
-.tab-btn.active {
-    background: var(--primary);
-    color: #fff;
-}
-
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
-}
-
-.card {
-    margin-bottom: 20px;
-    padding: 20px;
-    border-radius: 10px;
-    background: var(--card);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
-}
-
-.card-title-flex {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.section-icon {
-    font-size: 1.6rem;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.btn {
-    min-height: 40px;
-    padding: 10px 14px;
-    border: 0;
-    border-radius: 7px;
-    color: #fff;
-    font-weight: 600;
-    transition: filter .2s, transform .1s;
-}
-
-.btn:hover {
-    filter: brightness(.92);
-}
-
-.btn:active {
-    transform: translateY(1px);
-}
-
-.btn-primary {
-    background: var(--primary);
-}
-
-.btn-secondary {
-    background: var(--secondary);
-}
-
-.btn-success {
-    background: var(--success);
-}
-
-.btn-danger {
-    background: var(--danger);
-}
-
-.btn-block {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.btn-icon {
-    min-width: 38px;
-    min-height: 34px;
-    padding: 6px 9px;
-}
-
-.toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.helper-text {
-    color: var(--muted);
-    font-size: .88rem;
-    line-height: 1.5;
-}
-
-.badge-contador,
-.badge-status {
-    display: inline-flex;
-    align-items: center;
-    border-radius: 20px;
-    font-size: .78rem;
-    font-weight: 700;
-}
-
-.badge-contador {
-    padding: 5px 10px;
-    background: var(--primary);
-    color: #fff;
-}
-
-.badge-status {
-    padding: 7px 11px;
-    color: #fff;
-}
-
-.badge-previa {
-    background: var(--warning);
-}
-
-.badge-definitiva {
-    background: var(--success);
-}
-
-.motoristas-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 390px;
-    margin-top: 12px;
-    overflow-y: auto;
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 9px 10px;
-    border: 1px solid #e2e8f0;
-    border-radius: 7px;
-    background: #f8fafc;
-}
-
-.checkbox-item label {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    margin: 0;
-    font-weight: 500;
-}
-
-.checkbox-item input[type="checkbox"] {
-    width: 18px;
-    min-height: 18px;
-}
-
-.search-box {
-    position: relative;
-}
-
-.search-box input {
-    padding-right: 42px;
-}
-
-.search-icon {
-    position: absolute;
-    top: 50%;
-    right: 12px;
-    transform: translateY(-50%);
-    color: var(--primary);
-    pointer-events: none;
-}
-
-.dual-listbox {
-    display: flex;
-    align-items: stretch;
-    gap: 12px;
-    overflow-x: auto;
-}
-
-.dual-listbox-col {
-    display: flex;
-    min-width: 150px;
-    flex: 1;
-    flex-direction: column;
-}
-
-.dual-listbox-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.dual-listbox-header label {
-    margin-top: 0;
-}
-
-.dual-listbox-col select {
-    height: 260px;
-}
-
-.dual-listbox-botoes {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 8px;
-}
-
-.link-btn {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--primary);
-    font-size: .78rem;
-    text-decoration: underline;
-}
-
-.table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .88rem;
-}
-
-.data-table th,
-.data-table td {
-    padding: 10px;
-    border-bottom: 1px solid #e2e8f0;
-    text-align: left;
-    vertical-align: middle;
-}
-
-.data-table th {
-    background: #f8fafc;
-    color: #475569;
-}
-
-.input-onda {
-    width: 90px !important;
-    min-height: 34px;
-    padding: 6px !important;
-    text-align: center;
-}
-
-.row-cancelada td {
-    color: #94a3b8;
-    text-decoration: line-through;
-}
-
-.orientation-message {
-    margin-bottom: 15px;
-    padding: 12px;
-    border-left: 4px solid var(--warning);
-    border-radius: 6px;
-    background: #fef3c7;
-    color: #92400e;
-    font-size: .9rem;
-    line-height: 1.5;
-}
-
-.kpi-container {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-}
-
-.kpi-card {
-    padding: 20px;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
-    text-align: center;
-}
-
-.kpi-card h4 {
-    margin: 0 0 8px;
-    color: var(--muted);
-    font-size: .88rem;
-}
-
-.kpi-card strong {
-    color: #0f172a;
-    font-size: 1.8rem;
-}
-
-.chart-card canvas {
-    max-height: 300px;
-}
-
-.modal-overlay {
-    position: fixed;
-    z-index: 1000;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(15, 23, 42, .78);
-}
-
-.modal-content {
-    width: min(420px, 100%);
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 25px;
-    border-radius: 10px;
-    background: #fff;
-}
-
-.modal-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.modal-actions .btn {
-    flex: 1;
-}
-
-.app-loader {
-    position: fixed;
-    z-index: 9999;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--background);
-}
-
-.loader-spinner {
-    width: 42px;
-    height: 42px;
-    border: 4px solid #cbd5e1;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: girar 1s linear infinite;
-}
-
-@keyframes girar {
-    to {
-        transform: rotate(360deg);
+'use strict';
+
+/*
+============================================================
+CONFIGURAÇÃO DO SUPABASE
+============================================================
+*/
+
+const SUPABASE_URL =
+    'https://bnpfdkwjdtnpfmnjoftf.supabase.co';
+
+const SUPABASE_ANON_KEY =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJucGZka3dqZHRucGZtbmpvZnRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzMxNzcsImV4cCI6MjEwNDE0OTE3N30.5ksgMBijxazAtCtse-Lb5MqmaxcL22dVqKBMrnjSYMA';
+
+let supabaseClient = null;
+let usuarioLogado = null;
+
+let motoristas = [];
+let escalas = {};
+let indisponibilidades = {};
+let historicoExecucoes = [];
+
+let escalaEmEdicao = null;
+
+let chartEvolucaoInstancia = null;
+let chartVeiculosInstancia = null;
+
+const MENSAGEM_CANCELAMENTO_AMAZON =
+    'Olá! Sua rota de hoje foi cancelada pela Amazon. Em caso de falta de outro motorista ou necessidade de rota extra, entraremos em contato para acioná-lo(a). Obrigado pela compreensão!';
+
+const mensagemPreviaNaoSalva =
+    'A prévia foi gerada, mas ainda não foi salva. Clique em "Salvar prévia" antes de baixar a imagem ou confirmar a escala como definitiva.';
+
+/*
+============================================================
+INICIALIZAÇÃO
+============================================================
+*/
+
+window.addEventListener(
+    'DOMContentLoaded',
+    inicializarSistema
+);
+
+async function inicializarSistema() {
+    try {
+        if (!configuracaoValida()) {
+            removerLoader();
+
+            criarTelaLogin(
+                'Configure a URL e a chave anon do Supabase no arquivo script.js.'
+            );
+
+            return;
+        }
+
+        if (!window.supabase) {
+            removerLoader();
+
+            criarTelaLogin(
+                'A biblioteca do Supabase não foi carregada. Verifique o index.html.'
+            );
+
+            return;
+        }
+
+        supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_ANON_KEY,
+                {
+                    auth: {
+                        persistSession: true,
+                        autoRefreshToken: true,
+                        detectSessionInUrl: true
+                    }
+                }
+            );
+
+        const autenticado =
+            await verificarSessao();
+
+        if (!autenticado) {
+            removerLoader();
+            return;
+        }
+
+        configurarDatas();
+        configurarEventos();
+
+        await carregarMotoristas();
+        await carregarEscalas();
+        await carregarIndisponibilidades();
+
+        renderizarMotoristas();
+        renderizarPrioridades();
+        renderizarIndisponibilidades();
+        carregarEscalaData();
+        atualizarInformacao();
+
+        removerLoader();
+    } catch (error) {
+        console.error(error);
+
+        removerLoader();
+
+        criarTelaLogin(
+            `Erro ao iniciar: ${obterMensagemErro(error)}`
+        );
     }
 }
 
-.login-overlay {
-    position: fixed;
-    z-index: 99999;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    background: rgba(15, 23, 42, .9);
+function configuracaoValida() {
+    return (
+        SUPABASE_URL.startsWith('https://') &&
+        SUPABASE_URL.includes('.supabase.co') &&
+        SUPABASE_ANON_KEY.length > 30 &&
+        !SUPABASE_ANON_KEY.includes('COLE_AQUI') &&
+        !SUPABASE_ANON_KEY.includes('..')
+    );
 }
 
-.login-card {
-    width: min(390px, 100%);
-    padding: 28px;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
-}
+function removerLoader() {
+    const loader =
+        document.getElementById('appLoader');
 
-.login-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--primary);
-}
-
-.login-brand h1 {
-    margin: 0;
-}
-
-.login-card p {
-    color: var(--muted);
-    font-size: .9rem;
-}
-
-.login-message {
-    margin: 12px 0;
-    padding: 10px;
-    border-radius: 6px;
-    background: #fee2e2;
-    color: #991b1b;
-    font-size: .86rem;
-}
-
-.login-card button {
-    width: 100%;
-    margin-top: 15px;
-}
-
-.toast-container {
-    position: fixed;
-    z-index: 2000;
-    right: 18px;
-    bottom: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.toast {
-    max-width: 350px;
-    padding: 12px 15px;
-    border-radius: 7px;
-    background: #0f172a;
-    color: #fff;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .2);
-    font-size: .88rem;
-}
-
-.toast.success {
-    background: var(--success);
-}
-
-.toast.error {
-    background: var(--danger);
-}
-
-@media (max-width: 900px) {
-    .grid-container,
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .kpi-container {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    if (loader) {
+        loader.remove();
     }
 }
 
-@media (max-width: 600px) {
-    body {
-        padding: 12px;
+function obterMensagemErro(error) {
+    return error?.message || 'Erro desconhecido.';
+}
+
+/*
+============================================================
+LOGIN
+============================================================
+*/
+
+async function verificarSessao() {
+    const {
+        data: { session },
+        error
+    } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        criarTelaLogin(
+            obterMensagemErro(error)
+        );
+
+        return false;
     }
 
-    .header {
-        align-items: flex-start;
-        flex-direction: column;
+    if (!session) {
+        criarTelaLogin();
+        return false;
     }
 
-    .header-actions {
-        justify-content: flex-start;
+    const {
+        data: perfil,
+        error: erroPerfil
+    } = await supabaseClient
+        .from('profiles')
+        .select('id, nome, role, ativo')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+    if (erroPerfil) {
+        criarTelaLogin(
+            `Perfil não encontrado: ${erroPerfil.message}`
+        );
+
+        return false;
     }
 
-    .tabs {
-        flex-direction: column;
+    if (!perfil) {
+        criarTelaLogin(
+            'O usuário existe no Auth, mas ainda não possui registro na tabela profiles.'
+        );
+
+        return false;
     }
 
-    .tab-btn {
-        width: 100%;
-        text-align: left;
+    if (perfil.ativo === false) {
+        await supabaseClient.auth.signOut();
+
+        criarTelaLogin(
+            'Este usuário está desativado.'
+        );
+
+        return false;
     }
 
-    .dual-listbox {
-        flex-direction: column;
+    usuarioLogado = {
+        id: session.user.id,
+        email: session.user.email,
+        nome: perfil.nome,
+        role: perfil.role
+    };
+
+    removerTelaLogin();
+
+    const usuarioAtual =
+        document.getElementById('usuarioAtual');
+
+    if (usuarioAtual) {
+        usuarioAtual.textContent =
+            `${usuarioLogado.nome} · ${usuarioLogado.role}`;
     }
 
-    .dual-listbox-botoes {
-        flex-direction: row;
+    const botaoAdmin =
+        document.getElementById('btnPainelAdmin');
+
+    if (botaoAdmin) {
+        botaoAdmin.hidden =
+            usuarioLogado.role !== 'admin';
     }
 
-    .dual-listbox-col select {
-        height: 180px;
+    return true;
+}
+
+function criarTelaLogin(mensagem = '') {
+    let overlay =
+        document.getElementById('modalLoginOverlay');
+
+    if (!overlay) {
+        overlay =
+            document.createElement('div');
+
+        overlay.id =
+            'modalLoginOverlay';
+
+        overlay.className =
+            'login-overlay';
+
+        overlay.innerHTML = `
+            <div class="login-card">
+                <div class="login-brand">
+                    <span class="brand-icon">🚛</span>
+                    <h1>BETAXLOG</h1>
+                </div>
+
+                <p>
+                    Acesso seguro pelo Supabase Authentication.
+                </p>
+
+                <div
+                    id="loginMensagem"
+                    class="login-message"
+                    hidden>
+                </div>
+
+                <label for="loginEmail">
+                    E-mail
+                </label>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="seu@email.com">
+
+                <label for="loginSenha">
+                    Senha
+                </label>
+
+                <input
+                    id="loginSenha"
+                    type="password"
+                    autocomplete="current-password"
+                    placeholder="Digite sua senha">
+
+                <button
+                    id="btnLogin"
+                    class="btn btn-primary"
+                    type="button">
+                    Entrar
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        document
+            .getElementById('btnLogin')
+            .addEventListener(
+                'click',
+                executarLogin
+            );
+
+        document
+            .getElementById('loginSenha')
+            .addEventListener(
+                'keydown',
+                event => {
+                    if (event.key === 'Enter') {
+                        executarLogin();
+                    }
+                }
+            );
     }
 
-    .kpi-container {
-        grid-template-columns: 1fr;
+    const campoMensagem =
+        document.getElementById('loginMensagem');
+
+    if (campoMensagem) {
+        campoMensagem.textContent =
+            mensagem;
+
+        campoMensagem.hidden =
+            !mensagem;
     }
 
-    .toolbar .btn {
-        width: 100%;
+    overlay.style.display =
+        'flex';
+}
+
+function removerTelaLogin() {
+    const overlay =
+        document.getElementById('modalLoginOverlay');
+
+    if (overlay) {
+        overlay.remove();
     }
+}
+
+async function executarLogin() {
+    const email =
+        document.getElementById(
+            'loginEmail'
+        ).value.trim().toLowerCase();
+
+    const senha =
+        document.getElementById(
+            'loginSenha'
+        ).value;
+
+    const botao =
+        document.getElementById('btnLogin');
+
+    if (!email || !senha) {
+        mostrarMensagemLogin(
+            'Informe o e-mail e a senha.'
+        );
+
+        return;
+    }
+
+    botao.disabled =
+        true;
+
+    botao.textContent =
+        'Entrando...';
+
+    const {
+        error
+    } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password: senha
+    });
+
+    if (error) {
+        botao.disabled =
+            false;
+
+        botao.textContent =
+            'Entrar';
+
+        mostrarMensagemLogin(
+            traduzirErroLogin(error)
+        );
+
+        return;
+    }
+
+    window.location.reload();
+}
+
+function mostrarMensagemLogin(mensagem) {
+    const campo =
+        document.getElementById('loginMensagem');
+
+    if (campo) {
+        campo.textContent =
+            mensagem;
+
+        campo.hidden =
+            false;
+    }
+}
+
+function traduzirErroLogin(error) {
+    const mensagem =
+        String(
+            error?.message || ''
+        ).toLowerCase();
+
+    if (mensagem.includes('invalid login credentials')) {
+        return 'E-mail ou senha inválidos.';
+    }
+
+    if (mensagem.includes('email not confirmed')) {
+        return 'O e-mail ainda não foi confirmado no Supabase.';
+    }
+
+    if (mensagem.includes('failed to fetch')) {
+        return 'Não foi possível conectar ao Supabase.';
+    }
+
+    return error?.message ||
+        'Não foi possível realizar o login.';
+}
+
+async function fazerLogout() {
+    if (!confirm('Deseja sair do sistema?')) {
+        return;
+    }
+
+    await supabaseClient.auth.signOut();
+
+    window.location.reload();
+}
+
+/*
+============================================================
+DATAS E EVENTOS
+============================================================
+*/
+
+function obterDataISO(data = new Date()) {
+    const ano =
+        data.getFullYear();
+
+    const mes =
+        String(
+            data.getMonth() + 1
+        ).padStart(2, '0');
+
+    const dia =
+        String(
+            data.getDate()
+        ).padStart(2, '0');
+
+    return `${ano}-${mes}-${dia}`;
+}
+
+function converterData(valor) {
+    if (!valor) return null;
+
+    const partes =
+        valor.split('-').map(Number);
+
+    return new Date(
+        partes[0],
+        partes[1] - 1,
+        partes[2]
+    );
+}
+
+function configurarDatas() {
+    const dataEscala =
+        document.getElementById('dataEscala');
+
+    if (dataEscala) {
+        dataEscala.value =
+            obterDataISO();
+    }
+
+    const inicio =
+        document.getElementById(
+            'relatorioDataInicio'
+        );
+
+    const fim =
+        document.getElementById(
+            'relatorioDataFim'
+        );
+
+    const hoje =
+        new Date();
+
+    if (inicio) {
+        inicio.value =
+            obterDataISO(
+                new Date(
+                    hoje.getFullYear(),
+                    hoje.getMonth(),
+                    1
+                )
+            );
+    }
+
+    if (fim) {
+        fim.value =
+            obterDataISO();
+    }
+}
+
+function configurarEventos() {
+    const campoData =
+        document.getElementById('dataEscala');
+
+    if (campoData) {
+        campoData.addEventListener(
+            'change',
+            async () => {
+                await carregarIndisponibilidades();
+
+                renderizarIndisponibilidades();
+                carregarEscalaData();
+            }
+        );
+    }
+}
+
+function alternarAba(aba) {
+    const views = {
+        operacional:
+            document.getElementById(
+                'viewOperacional'
+            ),
+
+        motoristas:
+            document.getElementById(
+                'viewMotoristas'
+            ),
+
+        relatorios:
+            document.getElementById(
+                'viewRelatorios'
+            )
+    };
+
+    const botoes = {
+        operacional:
+            document.getElementById(
+                'btnAbaOperacional'
+            ),
+
+        motoristas:
+            document.getElementById(
+                'btnAbaMotoristas'
+            ),
+
+        relatorios:
+            document.getElementById(
+                'btnAbaRelatorios'
+            )
+    };
+
+    Object.values(views).forEach(view => {
+        if (view) view.hidden = true;
+    });
+
+    Object.values(botoes).forEach(botao => {
+        if (botao) {
+            botao.classList.remove('active');
+        }
+    });
+
+    if (views[aba]) {
+        views[aba].hidden = false;
+    }
+
+    if (botoes[aba]) {
+        botoes[aba].classList.add('active');
+    }
+
+    if (aba === 'relatorios') {
+        gerarRelatorioHistorico();
+    }
+}
+
+/*
+============================================================
+MOTORISTAS
+============================================================
+*/
+
+async function carregarMotoristas() {
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from('motoristas')
+        .select('*')
+        .eq('ativo', true)
+        .order('nome');
+
+    if (error) {
+        throw error;
+    }
+
+    motoristas =
+        data || [];
+}
+
+function renderizarMotoristas() {
+    const lista =
+        document.getElementById(
+            'listaMotoristasCheck'
+        );
+
+    if (!lista) return;
+
+    const filtro =
+        document.getElementById(
+            'filtroMotorista'
+        )?.value
+            .trim()
+            .toLowerCase() || '';
+
+    lista.replaceChildren();
+
+    const encontrados =
+        motoristas.filter(motorista =>
+            motorista.nome
+                .toLowerCase()
+                .includes(filtro)
+        );
+
+    document.getElementById(
+        'contadorTotalMotoristas'
+    ).textContent =
+        `Total: ${motoristas.length}`;
+
+    if (!encontrados.length) {
+        const vazio =
+            document.createElement('p');
+
+        vazio.className =
+            'helper-text';
+
+        vazio.textContent =
+            'Nenhum motorista encontrado.';
+
+        lista.appendChild(vazio);
+
+        return;
+    }
+
+    encontrados.forEach(motorista => {
+        const linha =
+            document.createElement('div');
+
+        linha.className =
+            'checkbox-item';
+
+        const texto =
+            document.createElement('span');
+
+        texto.textContent =
+            `${motorista.nome} · ${motorista.veiculo}`;
+
+        const acoes =
+            document.createElement('span');
+
+        const editar =
+            document.createElement('button');
+
+        editar.className =
+            'btn btn-secondary btn-icon';
+
+        editar.type =
+            'button';
+
+        editar.textContent =
+            '✏️';
+
+        editar.onclick =
+            () =>
+                abrirEdicaoMotorista(
+                    motorista.id
+                );
+
+        const excluir =
+            document.createElement('button');
+
+        excluir.className =
+            'btn btn-danger btn-icon';
+
+        excluir.type =
+            'button';
+
+        excluir.textContent =
+            '🗑️';
+
+        excluir.onclick =
+            () =>
+                excluirMotorista(
+                    motorista.id
+                );
+
+        acoes.append(
+            editar,
+            excluir
+        );
+
+        linha.append(
+            texto,
+            acoes
+        );
+
+        lista.appendChild(linha);
+    });
+}
+
+async function cadastrarMotorista() {
+    const nome =
+        document.getElementById(
+            'nomeMotorista'
+        ).value.trim();
+
+    const telefone =
+        document.getElementById(
+            'telMotorista'
+        ).value.trim();
+
+    const veiculo =
+        document.getElementById(
+            'tipoVeiculo'
+        ).value;
+
+    if (!nome) {
+        mostrarToast(
+            'Informe o nome do motorista.',
+            'error'
+        );
+
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('motoristas')
+        .insert({
+            nome,
+            telefone,
+            veiculo,
+            prioridade: false,
+            ativo: true
+        });
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    document.getElementById(
+        'nomeMotorista'
+    ).value = '';
+
+    document.getElementById(
+        'telMotorista'
+    ).value = '';
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+
+    mostrarToast(
+        'Motorista cadastrado.',
+        'success'
+    );
+}
+
+function abrirEdicaoMotorista(id) {
+    const motorista =
+        motoristas.find(
+            item => item.id === id
+        );
+
+    if (!motorista) return;
+
+    document.getElementById(
+        'editMotoristaId'
+    ).value =
+        motorista.id;
+
+    document.getElementById(
+        'editNomeMotorista'
+    ).value =
+        motorista.nome;
+
+    document.getElementById(
+        'editTelMotorista'
+    ).value =
+        motorista.telefone || '';
+
+    document.getElementById(
+        'editTipoVeiculo'
+    ).value =
+        motorista.veiculo;
+
+    document.getElementById(
+        'modalEdicao'
+    ).hidden = false;
+}
+
+function fecharModalEdicao() {
+    document.getElementById(
+        'modalEdicao'
+    ).hidden = true;
+}
+
+async function salvarEdicaoMotorista() {
+    const id =
+        document.getElementById(
+            'editMotoristaId'
+        ).value;
+
+    const nome =
+        document.getElementById(
+            'editNomeMotorista'
+        ).value.trim();
+
+    const telefone =
+        document.getElementById(
+            'editTelMotorista'
+        ).value.trim();
+
+    const veiculo =
+        document.getElementById(
+            'editTipoVeiculo'
+        ).value;
+
+    if (!id || !nome) {
+        mostrarToast(
+            'Preencha os dados obrigatórios.',
+            'error'
+        );
+
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('motoristas')
+        .update({
+            nome,
+            telefone,
+            veiculo,
+            updated_at:
+                new Date().toISOString()
+        })
+        .eq('id', id);
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    fecharModalEdicao();
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+    renderizarIndisponibilidades();
+
+    mostrarToast(
+        'Motorista atualizado.',
+        'success'
+    );
+}
+
+async function excluirMotorista(id) {
+    const motorista =
+        motoristas.find(
+            item => item.id === id
+        );
+
+    if (!motorista) return;
+
+    if (!confirm(
+        `Arquivar o motorista ${motorista.nome}?`
+    )) {
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('motoristas')
+        .update({
+            ativo: false,
+            updated_at:
+                new Date().toISOString()
+        })
+        .eq('id', id);
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+    renderizarIndisponibilidades();
+
+    mostrarToast(
+        'Motorista arquivado.',
+        'success'
+    );
+}
+
+/*
+============================================================
+PRIORIDADE
+============================================================
+*/
+
+function renderizarPrioridades() {
+    const rodizio =
+        document.getElementById(
+            'listaRodizio'
+        );
+
+    const prioritarios =
+        document.getElementById(
+            'listaPrioritarios'
+        );
+
+    if (!rodizio || !prioritarios) {
+        return;
+    }
+
+    rodizio.replaceChildren();
+    prioritarios.replaceChildren();
+
+    motoristas.forEach(motorista => {
+        const option =
+            document.createElement('option');
+
+        option.value =
+            motorista.id;
+
+        option.textContent =
+            motorista.nome;
+
+        if (motorista.prioridade) {
+            prioritarios.appendChild(option);
+        } else {
+            rodizio.appendChild(option);
+        }
+    });
+}
+
+function selecionarTodos(id) {
+    const select =
+        document.getElementById(id);
+
+    if (!select) return;
+
+    Array.from(select.options)
+        .forEach(option => {
+            option.selected = true;
+        });
+}
+
+async function moverParaPrioridade() {
+    await alterarPrioridadeSelecionados(
+        'listaRodizio',
+        true
+    );
+}
+
+async function moverParaRodizio() {
+    await alterarPrioridadeSelecionados(
+        'listaPrioritarios',
+        false
+    );
+}
+
+async function alterarPrioridadeSelecionados(
+    origem,
+    prioridade
+) {
+    const select =
+        document.getElementById(origem);
+
+    const ids =
+        Array.from(
+            select.selectedOptions
+        ).map(option => option.value);
+
+    if (!ids.length) {
+        mostrarToast(
+            'Selecione pelo menos um motorista.',
+            'error'
+        );
+
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('motoristas')
+        .update({
+            prioridade,
+            updated_at:
+                new Date().toISOString()
+        })
+        .in('id', ids);
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+
+    mostrarToast(
+        'Prioridade atualizada.',
+        'success'
+    );
+}
+
+/*
+============================================================
+INDISPONIBILIDADE COM PESQUISA
+============================================================
+*/
+
+async function carregarIndisponibilidades() {
+    const data =
+        document.getElementById(
+            'dataEscala'
+        )?.value;
+
+    if (!data) return;
+
+    const {
+        data: registros,
+        error
+    } = await supabaseClient
+        .from('indisponibilidades')
+        .select('motorista_id')
+        .eq('data', data);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    indisponibilidades[data] =
+        (registros || [])
+            .map(item => item.motorista_id);
+}
+
+function renderizarIndisponibilidades() {
+    const lista =
+        document.getElementById(
+            'listaMotoristasIndisponiveis'
+        );
+
+    const data =
+        document.getElementById(
+            'dataEscala'
+        )?.value;
+
+    if (!lista || !data) return;
+
+    const busca =
+        document.getElementById(
+            'buscaIndisponibilidade'
+        )?.value
+            .trim()
+            .toLowerCase() || '';
+
+    const idsIndisponiveis =
+        indisponibilidades[data] || [];
+
+    lista.replaceChildren();
+
+    const encontrados =
+        motoristas.filter(motorista =>
+            motorista.nome
+                .toLowerCase()
+                .includes(busca)
+        );
+
+    if (!encontrados.length) {
+        const vazio =
+            document.createElement('p');
+
+        vazio.className =
+            'helper-text';
+
+        vazio.textContent =
+            'Nenhum motorista encontrado.';
+
+        lista.appendChild(vazio);
+
+        return;
+    }
+
+    encontrados.forEach(motorista => {
+        const linha =
+            document.createElement('div');
+
+        linha.className =
+            'checkbox-item';
+
+        const label =
+            document.createElement('label');
+
+        const checkbox =
+            document.createElement('input');
+
+        checkbox.type =
+            'checkbox';
+
+        checkbox.checked =
+            idsIndisponiveis.includes(
+                motorista.id
+            );
+
+        checkbox.addEventListener(
+            'change',
+            event =>
+                alterarIndisponibilidade(
+                    data,
+                    motorista.id,
+                    event.target.checked
+                )
+        );
+
+        const texto =
+            document.createElement('span');
+
+        texto.textContent =
+            `${motorista.nome} · ${motorista.veiculo}`;
+
+        label.append(
+            checkbox,
+            texto
+        );
+
+        linha.appendChild(label);
+        lista.appendChild(linha);
+    });
+}
+
+async function alterarIndisponibilidade(
+    data,
+    motoristaId,
+    indisponivel
+) {
+    if (indisponivel) {
+        const {
+            error
+        } = await supabaseClient
+            .from('indisponibilidades')
+            .upsert(
+                {
+                    data,
+                    motorista_id:
+                        motoristaId
+                },
+                {
+                    onConflict:
+                        'data,motorista_id'
+                }
+            );
+
+        if (error) {
+            mostrarToast(
+                error.message,
+                'error'
+            );
+
+            return;
+        }
+    } else {
+        const {
+            error
+        } = await supabaseClient
+            .from('indisponibilidades')
+            .delete()
+            .eq('data', data)
+            .eq(
+                'motorista_id',
+                motoristaId
+            );
+
+        if (error) {
+            mostrarToast(
+                error.message,
+                'error'
+            );
+
+            return;
+        }
+    }
+
+    await carregarIndisponibilidades();
+}
+
+/*
+============================================================
+ESCALAS E PRÉVIAS
+============================================================
+*/
+
+async function carregarEscalas() {
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from('escalas')
+        .select(`
+            *,
+            escala_itens(*)
+        `)
+        .order(
+            'data',
+            {
+                ascending: false
+            }
+        );
+
+    if (error) {
+        throw error;
+    }
+
+    escalas = {};
+    historicoExecucoes = [];
+
+    (data || []).forEach(escala => {
+        const itens =
+            (escala.escala_itens || [])
+                .sort(
+                    (a, b) =>
+                        a.ordem - b.ordem
+                )
+                .map(item => ({
+                    id: item.id,
+                    dsp: item.dsp,
+                    nome: item.nome_snapshot,
+                    telefone:
+                        item.telefone_snapshot || '',
+                    motoristaId:
+                        item.motorista_id,
+                    veiculo: item.veiculo,
+                    onda: item.onda || '',
+                    status: item.status
+                }));
+
+        escalas[escala.data] = {
+            id: escala.id,
+            status: escala.status,
+            salva: true,
+            vagas: {
+                utilitario:
+                    escala.vagas_utilitario,
+
+                van:
+                    escala.vagas_van,
+
+                passeio:
+                    escala.vagas_passeio
+            },
+            itens
+        };
+
+        if (escala.status === 'definitiva') {
+            historicoExecucoes.push({
+                data: escala.data,
+                itens
+            });
+        }
+    });
+}
+
+function carregarEscalaData() {
+    const data =
+        document.getElementById(
+            'dataEscala'
+        )?.value;
+
+    const painel =
+        document.getElementById(
+            'painelEscala'
+        );
+
+    const escala =
+        escalas[data];
+
+    if (!painel) return;
+
+    if (!escala) {
+        escalaEmEdicao = null;
+        painel.hidden = true;
+        return;
+    }
+
+    escalaEmEdicao =
+        JSON.parse(
+            JSON.stringify(escala)
+        );
+
+    document.getElementById(
+        'vagasUtilitario'
+    ).value =
+        escala.vagas.utilitario;
+
+    document.getElementById(
+        'vagasVan'
+    ).value =
+        escala.vagas.van;
+
+    document.getElementById(
+        'vagasPasseio'
+    ).value =
+        escala.vagas.passeio;
+
+    painel.hidden = false;
+
+    renderizarTabelaEscala(
+        escalaEmEdicao.itens,
+        escalaEmEdicao.status,
+        true
+    );
+
+    atualizarEstadoBotoes(true);
+}
+
+async function gerarPrevia() {
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    if (!data) {
+        mostrarToast(
+            'Informe a data da escala.',
+            'error'
+        );
+
+        return;
+    }
+
+    const vagas = {
+        utilitario: Number(
+            document.getElementById(
+                'vagasUtilitario'
+            ).value
+        ),
+
+        van: Number(
+            document.getElementById(
+                'vagasVan'
+            ).value
+        ),
+
+        passeio: Number(
+            document.getElementById(
+                'vagasPasseio'
+            ).value
+        )
+    };
+
+    if (
+        vagas.utilitario <= 0 &&
+        vagas.van <= 0 &&
+        vagas.passeio <= 0
+    ) {
+        mostrarToast(
+            'Informe pelo menos uma vaga.',
+            'error'
+        );
+
+        return;
+    }
+
+    const indisponiveis =
+        indisponibilidades[data] || [];
+
+    const disponiveis =
+        motoristas.filter(motorista =>
+            !indisponiveis.includes(
+                motorista.id
+            )
+        );
+
+    const usados =
+        new Set();
+
+    const itens =
+        [];
+
+    const tipos = [
+        {
+            nome: 'Utilitário',
+            quantidade: vagas.utilitario
+        },
+        {
+            nome: 'Van',
+            quantidade: vagas.van
+        },
+        {
+            nome: 'Carro de Passeio',
+            quantidade: vagas.passeio
+        }
+    ];
+
+    tipos.forEach(tipo => {
+        for (
+            let index = 0;
+            index < tipo.quantidade;
+            index++
+        ) {
+            const motorista =
+                disponiveis.find(item =>
+                    item.veiculo === tipo.nome &&
+                    !item.prioridade &&
+                    !usados.has(item.id)
+                ) ||
+                disponiveis.find(item =>
+                    item.veiculo === tipo.nome &&
+                    !usados.has(item.id)
+                );
+
+            if (motorista) {
+                usados.add(
+                    motorista.id
+                );
+
+                itens.push({
+                    ordem: itens.length,
+                    dsp: 'BETAXLOG',
+                    nome: motorista.nome,
+                    telefone:
+                        motorista.telefone || '',
+                    motoristaId:
+                        motorista.id,
+                    veiculo:
+                        motorista.veiculo,
+                    onda: '',
+                    status: 'ativo'
+                });
+            } else {
+                itens.push({
+                    ordem: itens.length,
+                    dsp: 'BETAXLOG',
+                    nome: 'VAGA SEM MOTORISTA',
+                    telefone: '',
+                    motoristaId: null,
+                    veiculo: tipo.nome,
+                    onda: '',
+                    status: 'vago'
+                });
+            }
+        }
+    });
+
+    escalaEmEdicao = {
+        id: null,
+        status: 'prévia',
+        salva: false,
+        data,
+        vagas,
+        itens
+    };
+
+    const escalaSalva =
+        escalas[data];
+
+    if (escalaSalva) {
+        escalaEmEdicao.id =
+            escalaSalva.id;
+    }
+
+    document.getElementById(
+        'painelEscala'
+    ).hidden = false;
+
+    renderizarTabelaEscala(
+        itens,
+        'prévia',
+        false
+    );
+
+    atualizarEstadoBotoes(false);
+
+    mostrarToast(
+        'Prévia gerada. Salve a prévia antes de baixar a imagem ou confirmar.',
+        'info'
+    );
+}
+
+function renderizarTabelaEscala(
+    itens,
+    status,
+    previaSalva
+) {
+    const tbody =
+        document.getElementById(
+            'tabelaEscalaBody'
+        );
+
+    if (!tbody) return;
+
+    tbody.replaceChildren();
+
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    document.getElementById(
+        'dataSubtituloImagem'
+    ).textContent =
+        `Data: ${data.split('-').reverse().join('/')}`;
+
+    const tag =
+        document.getElementById(
+            'tagStatus'
+        );
+
+    if (status === 'definitiva') {
+        tag.textContent =
+            'DEFINITIVA';
+
+        tag.className =
+            'badge-status badge-definitiva';
+    } else if (previaSalva) {
+        tag.textContent =
+            'PRÉVIA SALVA';
+
+        tag.className =
+            'badge-status badge-previa';
+    } else {
+        tag.textContent =
+            'PRÉVIA NÃO SALVA';
+
+        tag.className =
+            'badge-status badge-previa';
+    }
+
+    itens.forEach((item, index) => {
+        const tr =
+            document.createElement('tr');
+
+        if (
+            item.status === 'cancelado' ||
+            item.status === 'cancelado_amazon'
+        ) {
+            tr.className =
+                'row-cancelada';
+        }
+
+        const tdDsp =
+            document.createElement('td');
+
+        tdDsp.textContent =
+            item.dsp;
+
+        const tdNome =
+            document.createElement('td');
+
+        tdNome.textContent =
+            item.nome;
+
+        const tdVeiculo =
+            document.createElement('td');
+
+        tdVeiculo.textContent =
+            item.veiculo;
+
+        const tdOnda =
+            document.createElement('td');
+
+        const input =
+            document.createElement('input');
+
+        input.className =
+            'input-onda';
+
+        input.value =
+            item.onda || '';
+
+        input.placeholder =
+            'HH:MM';
+
+        input.addEventListener(
+            'change',
+            () =>
+                atualizarOnda(
+                    index,
+                    input.value
+                )
+        );
+
+        tdOnda.appendChild(input);
+
+        const tdAcoes =
+            document.createElement('td');
+
+        const botao =
+            document.createElement('button');
+
+        botao.className =
+            item.status === 'cancelado_amazon'
+                ? 'btn btn-success btn-icon'
+                : 'btn btn-danger btn-icon';
+
+        botao.textContent =
+            item.status === 'cancelado_amazon'
+                ? '✅'
+                : '❌';
+
+        botao.onclick =
+            () =>
+                item.status === 'cancelado_amazon'
+                    ? ativarRota(index)
+                    : cancelarRota(index);
+
+        tdAcoes.appendChild(botao);
+
+        tr.append(
+            tdDsp,
+            tdNome,
+            tdVeiculo,
+            tdOnda,
+            tdAcoes
+        );
+
+        tbody.appendChild(tr);
+    });
+
+    const aviso =
+        document.getElementById(
+            'avisoPreviaNaoSalva'
+        );
+
+    if (aviso) {
+        aviso.hidden =
+            previaSalva ||
+            status === 'definitiva';
+    }
+}
+
+function atualizarEstadoBotoes(previaSalva) {
+    const salvar =
+        document.getElementById(
+            'btnSalvarPrevia'
+        );
+
+    const definitiva =
+        document.getElementById(
+            'btnConfirmarDefinitiva'
+        );
+
+    const imagem =
+        document.getElementById(
+            'btnBaixarImagem'
+        );
+
+    if (salvar) {
+        salvar.disabled =
+            previaSalva;
+    }
+
+    if (definitiva) {
+        definitiva.disabled =
+            !previaSalva;
+    }
+
+    if (imagem) {
+        imagem.disabled =
+            !previaSalva;
+    }
+}
+
+function validarHora(valor) {
+    const texto =
+        String(valor || '').trim();
+
+    if (!texto) {
+        return '';
+    }
+
+    const partes =
+        texto.split(':');
+
+    if (partes.length !== 2) {
+        return null;
+    }
+
+    const horas =
+        Number(partes[0]);
+
+    const minutos =
+        Number(partes[1]);
+
+    if (
+        !Number.isInteger(horas) ||
+        !Number.isInteger(minutos) ||
+        horas < 0 ||
+        horas > 23 ||
+        minutos < 0 ||
+        minutos > 59
+    ) {
+        return null;
+    }
+
+    return (
+        String(horas).padStart(2, '0') +
+        ':' +
+        String(minutos).padStart(2, '0')
+    );
+}
+
+async function atualizarOnda(index, valor) {
+    if (!escalaEmEdicao) return;
+
+    const hora =
+        validarHora(valor);
+
+    if (hora === null) {
+        mostrarToast(
+            'Digite o horário no formato HH:MM.',
+            'error'
+        );
+
+        renderizarTabelaEscala(
+            escalaEmEdicao.itens,
+            escalaEmEdicao.status,
+            escalaEmEdicao.salva
+        );
+
+        return;
+    }
+
+    escalaEmEdicao.itens[index].onda =
+        hora;
+
+    escalaEmEdicao.salva =
+        false;
+
+    atualizarEstadoBotoes(false);
+
+    renderizarTabelaEscala(
+        escalaEmEdicao.itens,
+        escalaEmEdicao.status,
+        false
+    );
+}
+
+async function salvarPrevia() {
+    if (!escalaEmEdicao) {
+        mostrarToast(
+            'Gere uma prévia primeiro.',
+            'error'
+        );
+
+        return;
+    }
+
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    let escalaId =
+        escalaEmEdicao.id;
+
+    if (escalaId) {
+        const {
+            error
+        } = await supabaseClient
+            .from('escalas')
+            .update({
+                status: 'prévia',
+                vagas_utilitario:
+                    escalaEmEdicao.vagas.utilitario,
+                vagas_van:
+                    escalaEmEdicao.vagas.van,
+                vagas_passeio:
+                    escalaEmEdicao.vagas.passeio,
+                updated_at:
+                    new Date().toISOString()
+            })
+            .eq('id', escalaId);
+
+        if (error) {
+            mostrarToast(
+                error.message,
+                'error'
+            );
+
+            return;
+        }
+
+        await supabaseClient
+            .from('escala_itens')
+            .delete()
+            .eq('escala_id', escalaId);
+    } else {
+        const {
+            data: novaEscala,
+            error
+        } = await supabaseClient
+            .from('escalas')
+            .insert({
+                data,
+                status: 'prévia',
+                vagas_utilitario:
+                    escalaEmEdicao.vagas.utilitario,
+                vagas_van:
+                    escalaEmEdicao.vagas.van,
+                vagas_passeio:
+                    escalaEmEdicao.vagas.passeio,
+                criado_por:
+                    usuarioLogado.id
+            })
+            .select()
+            .single();
+
+        if (error) {
+            mostrarToast(
+                error.message,
+                'error'
+            );
+
+            return;
+        }
+
+        escalaId =
+            novaEscala.id;
+    }
+
+    const itens =
+        escalaEmEdicao.itens.map(
+            (item, index) => ({
+                escala_id: escalaId,
+                ordem: index,
+                dsp: item.dsp,
+                nome_snapshot: item.nome,
+                telefone_snapshot:
+                    item.telefone || '',
+                motorista_id:
+                    item.motoristaId,
+                veiculo: item.veiculo,
+                onda: item.onda || '',
+                status: item.status
+            })
+        );
+
+    const {
+        error: erroItens
+    } = await supabaseClient
+        .from('escala_itens')
+        .insert(itens);
+
+    if (erroItens) {
+        mostrarToast(
+            erroItens.message,
+            'error'
+        );
+
+        return;
+    }
+
+    await carregarEscalas();
+
+    escalaEmEdicao =
+        JSON.parse(
+            JSON.stringify(
+                escalas[data]
+            )
+        );
+
+    carregarEscalaData();
+
+    atualizarEstadoBotoes(true);
+
+    mostrarToast(
+        'Prévia salva com sucesso.',
+        'success'
+    );
+}
+
+async function confirmarDefinitiva() {
+    if (
+        !escalaEmEdicao ||
+        !escalaEmEdicao.salva
+    ) {
+        mostrarToast(
+            mensagemPreviaNaoSalva,
+            'error'
+        );
+
+        return;
+    }
+
+    if (!confirm(
+        'Confirmar esta escala como definitiva?'
+    )) {
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('escalas')
+        .update({
+            status: 'definitiva',
+            updated_at:
+                new Date().toISOString()
+        })
+        .eq(
+            'id',
+            escalaEmEdicao.id
+        );
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    await carregarEscalas();
+    carregarEscalaData();
+
+    mostrarToast(
+        'Escala confirmada como definitiva.',
+        'success'
+    );
+}
+
+async function excluirEscalaAtual() {
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    const escala =
+        escalas[data];
+
+    if (!escala) {
+        mostrarToast(
+            'Não existe escala salva nesta data.',
+            'error'
+        );
+
+        return;
+    }
+
+    if (!confirm(
+        'Excluir a escala salva desta data?'
+    )) {
+        return;
+    }
+
+    const {
+        error
+    } = await supabaseClient
+        .from('escalas')
+        .delete()
+        .eq(
+            'id',
+            escala.id
+        );
+
+    if (error) {
+        mostrarToast(
+            error.message,
+            'error'
+        );
+
+        return;
+    }
+
+    delete escalas[data];
+
+    escalaEmEdicao =
+        null;
+
+    document.getElementById(
+        'painelEscala'
+    ).hidden = true;
+
+    mostrarToast(
+        'Escala excluída.',
+        'success'
+    );
+}
+
+async function cancelarRota(index) {
+    if (!escalaEmEdicao) return;
+
+    const item =
+        escalaEmEdicao.itens[index];
+
+    if (!item.motoristaId) {
+        mostrarToast(
+            'Esta vaga não possui motorista.',
+            'error'
+        );
+
+        return;
+    }
+
+    if (!confirm(
+        `Cancelar a rota de ${item.nome}?`
+    )) {
+        return;
+    }
+
+    item.status =
+        'cancelado_amazon';
+
+    await salvarItensDaEscalaEmEdicao();
+
+    renderizarTabelaEscala(
+        escalaEmEdicao.itens,
+        escalaEmEdicao.status,
+        true
+    );
+
+    const telefone =
+        String(
+            item.telefone || ''
+        ).replace(/\D/g, '');
+
+    if (telefone.length >= 10) {
+        const mensagem =
+            encodeURIComponent(
+                MENSAGEM_CANCELAMENTO_AMAZON
+            );
+
+        window.open(
+            `https://wa.me/${telefone}?text=${mensagem}`,
+            '_blank',
+            'noopener,noreferrer'
+        );
+    }
+}
+
+async function ativarRota(index) {
+    if (!escalaEmEdicao) return;
+
+    escalaEmEdicao.itens[index].status =
+        'ativo';
+
+    await salvarItensDaEscalaEmEdicao();
+
+    renderizarTabelaEscala(
+        escalaEmEdicao.itens,
+        escalaEmEdicao.status,
+        true
+    );
+}
+
+async function salvarItensDaEscalaEmEdicao() {
+    if (!escalaEmEdicao?.id) {
+        return;
+    }
+
+    await supabaseClient
+        .from('escala_itens')
+        .delete()
+        .eq(
+            'escala_id',
+            escalaEmEdicao.id
+        );
+
+    const itens =
+        escalaEmEdicao.itens.map(
+            (item, index) => ({
+                escala_id:
+                    escalaEmEdicao.id,
+                ordem: index,
+                dsp: item.dsp,
+                nome_snapshot: item.nome,
+                telefone_snapshot:
+                    item.telefone || '',
+                motorista_id:
+                    item.motoristaId,
+                veiculo: item.veiculo,
+                onda: item.onda || '',
+                status: item.status
+            })
+        );
+
+    await supabaseClient
+        .from('escala_itens')
+        .insert(itens);
+}
+
+/*
+============================================================
+EXPORTAÇÕES
+============================================================
+*/
+
+function gerarImagemEscalaECompartilhar() {
+    if (
+        !escalaEmEdicao ||
+        !escalaEmEdicao.salva
+    ) {
+        mostrarToast(
+            mensagemPreviaNaoSalva,
+            'error'
+        );
+
+        return;
+    }
+
+    const area =
+        document.getElementById(
+            'areaCapturaImagem'
+        );
+
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    html2canvas(
+        area,
+        {
+            scale: 2
+        }
+    ).then(canvas => {
+        const link =
+            document.createElement('a');
+
+        link.download =
+            `escala_betaxlog_${data}.png`;
+
+        link.href =
+            canvas.toDataURL('image/png');
+
+        link.click();
+    });
+}
+
+function compartilharWhatsAppTexto() {
+    const data =
+        document.getElementById(
+            'dataEscala'
+        ).value;
+
+    const escala =
+        escalaEmEdicao;
+
+    if (!escala) {
+        mostrarToast(
+            'Não existe escala nesta data.',
+            'error'
+        );
+
+        return;
+    }
+
+    let texto =
+        `🚛 ESCALA BETAXLOG\n` +
+        `📅 Data: ${data.split('-').reverse().join('/')}\n\n`;
+
+    escala.itens
+        .filter(item =>
+            item.motoristaId &&
+            item.status !== 'cancelado' &&
+            item.status !== 'cancelado_amazon'
+        )
+        .forEach(item => {
+            texto +=
+                `• ${item.nome} - ` +
+                `${item.veiculo} - ` +
+                `Onda: ${item.onda || 'não definida'}\n`;
+        });
+
+    navigator.clipboard
+        .writeText(texto)
+        .then(() => {
+            mostrarToast(
+                'Escala copiada para a área de transferência.',
+                'success'
+            );
+
+            window.open(
+                'https://web.whatsapp.com/',
+                '_blank',
+                'noopener,noreferrer'
+            );
+        });
+}
+
+function exportarExcel() {
+    if (!escalaEmEdicao) {
+        mostrarToast(
+            'Não existe escala para exportar.',
+            'error'
+        );
+
+        return;
+    }
+
+    const dados =
+        escalaEmEdicao.itens.map(item => ({
+            DSP: item.dsp,
+            Motorista: item.nome,
+            Telefone: item.telefone,
+            Veiculo: item.veiculo,
+            Onda: item.onda,
+            Status: item.status
+        }));
+
+    const worksheet =
+        XLSX.utils.json_to_sheet(dados);
+
+    const workbook =
+        XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        'Escala'
+    );
+
+    XLSX.writeFile(
+        workbook,
+        `escala_${obterDataISO()}.xlsx`
+    );
+}
+
+function exportarBackupMotoristas() {
+    const dados =
+        motoristas.map(item => ({
+            Nome: item.nome,
+            Telefone: item.telefone,
+            Veiculo: item.veiculo,
+            Prioridade: item.prioridade
+                ? 'SIM'
+                : 'NAO'
+        }));
+
+    const worksheet =
+        XLSX.utils.json_to_sheet(dados);
+
+    const workbook =
+        XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        'Motoristas'
+    );
+
+    XLSX.writeFile(
+        workbook,
+        `motoristas_${obterDataISO()}.xlsx`
+    );
+}
+
+/*
+============================================================
+RELATÓRIOS
+============================================================
+*/
+
+function aplicarAtalhoPeriodo() {
+    const tipo =
+        document.getElementById(
+            'filtroAtalhoPeriodo'
+        ).value;
+
+    const hoje =
+        new Date();
+
+    let inicio =
+        new Date();
+
+    if (tipo === 'mes_atual') {
+        inicio =
+            new Date(
+                hoje.getFullYear(),
+                hoje.getMonth(),
+                1
+            );
+    }
+
+    if (tipo === 'semanal') {
+        inicio.setDate(
+            hoje.getDate() - 7
+        );
+    }
+
+    if (tipo === 'anual') {
+        inicio =
+            new Date(
+                hoje.getFullYear(),
+                0,
+                1
+            );
+    }
+
+    if (!tipo) return;
+
+    document.getElementById(
+        'relatorioDataInicio'
+    ).value =
+        obterDataISO(inicio);
+
+    document.getElementById(
+        'relatorioDataFim'
+    ).value =
+        obterDataISO(hoje);
+}
+
+function gerarRelatorioHistorico() {
+    const inicioTexto =
+        document.getElementById(
+            'relatorioDataInicio'
+        )?.value;
+
+    const fimTexto =
+        document.getElementById(
+            'relatorioDataFim'
+        )?.value;
+
+    if (!inicioTexto || !fimTexto) {
+        return;
+    }
+
+    const inicio =
+        converterData(inicioTexto);
+
+    const fim =
+        converterData(fimTexto);
+
+    fim.setHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+    const registros =
+        historicoExecucoes.filter(item => {
+            const data =
+                converterData(item.data);
+
+            return data >= inicio &&
+                data <= fim;
+        });
+
+    let total = 0;
+    let ativas = 0;
+    let canceladas = 0;
+
+    const ranking = {};
+
+    registros.forEach(registro => {
+        registro.itens.forEach(item => {
+            if (!item.motoristaId) {
+                return;
+            }
+
+            total++;
+
+            const cancelado =
+                item.status === 'cancelado' ||
+                item.status === 'cancelado_amazon';
+
+            if (cancelado) {
+                canceladas++;
+            } else {
+                ativas++;
+            }
+
+            if (!ranking[item.motoristaId]) {
+                ranking[item.motoristaId] = {
+                    nome: item.nome,
+                    veiculo: item.veiculo,
+                    escaladas: 0,
+                    canceladas: 0
+                };
+            }
+
+            ranking[item.motoristaId]
+                .escaladas++;
+
+            if (cancelado) {
+                ranking[item.motoristaId]
+                    .canceladas++;
+            }
+        });
+    });
+
+    document.getElementById(
+        'kpiTotalRotas'
+    ).textContent =
+        total;
+
+    document.getElementById(
+        'kpiRotasAtivas'
+    ).textContent =
+        ativas;
+
+    document.getElementById(
+        'kpiRotasCanceladas'
+    ).textContent =
+        canceladas;
+
+    document.getElementById(
+        'kpiTaxaSucesso'
+    ).textContent =
+        `${total ? ((ativas / total) * 100).toFixed(1) : 0}%`;
+
+    const tbody =
+        document.getElementById(
+            'tabelaRankingBody'
+        );
+
+    tbody.replaceChildren();
+
+    Object.values(ranking)
+        .sort(
+            (a, b) =>
+                b.escaladas - a.escaladas
+        )
+        .forEach(item => {
+            const tr =
+                document.createElement('tr');
+
+            [
+                item.nome,
+                item.veiculo,
+                item.escaladas,
+                item.canceladas,
+                `${(
+                    (
+                        item.escaladas -
+                        item.canceladas
+                    ) /
+                    item.escaladas *
+                    100
+                ).toFixed(1)}%`
+            ].forEach(valor => {
+                const td =
+                    document.createElement('td');
+
+                td.textContent =
+                    valor;
+
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+}
+
+function exportarRelatorioPDF() {
+    if (!window.jspdf) {
+        mostrarToast(
+            'Biblioteca PDF não carregada.',
+            'error'
+        );
+
+        return;
+    }
+
+    const {
+        jsPDF
+    } = window.jspdf;
+
+    const documento =
+        new jsPDF();
+
+    documento.text(
+        'Relatório BETAXLOG',
+        14,
+        20
+    );
+
+    documento.autoTable({
+        html: '#tabelaRankingBody',
+        startY: 30
+    });
+
+    documento.save(
+        `relatorio_betaxlog_${obterDataISO()}.pdf`
+    );
+}
+
+/*
+============================================================
+ADMINISTRAÇÃO
+============================================================
+*/
+
+function abrirModalAdmin() {
+    if (
+        usuarioLogado?.role !== 'admin'
+    ) {
+        mostrarToast(
+            'Acesso restrito ao administrador.',
+            'error'
+        );
+
+        return;
+    }
+
+    document.getElementById(
+        'listaUsuariosCadastrados'
+    ).textContent =
+        `${usuarioLogado.nome} · ` +
+        `${usuarioLogado.email} · ` +
+        `${usuarioLogado.role}`;
+
+    document.getElementById(
+        'modalAdmin'
+    ).hidden = false;
+}
+
+function fecharModalAdmin() {
+    document.getElementById(
+        'modalAdmin'
+    ).hidden = true;
+}
+
+async function apagarTodoOSistema() {
+    if (
+        usuarioLogado?.role !== 'admin'
+    ) {
+        return;
+    }
+
+    if (!confirm(
+        'Excluir todas as escalas e arquivar motoristas?'
+    )) {
+        return;
+    }
+
+    if (
+        prompt(
+            'Digite APAGAR para confirmar:'
+        ) !== 'APAGAR'
+    ) {
+        return;
+    }
+
+    const {
+        error: erroMotoristas
+    } = await supabaseClient
+        .from('motoristas')
+        .update({
+            ativo: false
+        })
+        .eq('ativo', true);
+
+    if (erroMotoristas) {
+        mostrarToast(
+            erroMotoristas.message,
+            'error'
+        );
+
+        return;
+    }
+
+    const {
+        error: erroEscalas
+    } = await supabaseClient
+        .from('escalas')
+        .delete()
+        .not(
+            'id',
+            'is',
+            null
+        );
+
+    if (erroEscalas) {
+        mostrarToast(
+            erroEscalas.message,
+            'error'
+        );
+
+        return;
+    }
+
+    motoristas = [];
+    escalas = {};
+    indisponibilidades = {};
+    historicoExecucoes = [];
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+    renderizarIndisponibilidades();
+
+    document.getElementById(
+        'painelEscala'
+    ).hidden = true;
+
+    mostrarToast(
+        'Dados operacionais apagados.',
+        'success'
+    );
+}
+
+/*
+============================================================
+UTILITÁRIOS
+============================================================
+*/
+
+function atualizarInformacao() {
+    const campo =
+        document.getElementById(
+            'infoUltimoBackup'
+        );
+
+    if (campo) {
+        campo.textContent =
+            `☁️ Supabase sincronizado em ` +
+            `${new Date().toLocaleString('pt-BR')}`;
+    }
+}
+
+function mostrarToast(
+    mensagem,
+    tipo = ''
+) {
+    const container =
+        document.getElementById(
+            'toastContainer'
+        );
+
+    if (!container) {
+        alert(mensagem);
+        return;
+    }
+
+    const toast =
+        document.createElement('div');
+
+    toast.className =
+        `toast ${tipo}`;
+
+    toast.textContent =
+        mensagem;
+
+    container.appendChild(toast);
+
+    setTimeout(
+        () => toast.remove(),
+        4500
+    );
+}
+
+function obterMensagemErro(error) {
+    return error?.message ||
+        'Erro desconhecido.';
 }
