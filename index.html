@@ -2,18 +2,19 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-    <title>BETAXLOG - Gestão de Escalas</title>
+    <title>BETAXLOG</title>
 
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="script.js" defer></script>
 </head>
@@ -24,554 +25,468 @@
         <p>Carregando sistema...</p>
     </div>
 
-    <header class="header">
-        <div>
-            <div class="brand">
-                <span class="brand-icon">🚛</span>
-                <h1>BETAXLOG</h1>
+    <div id="loginRoot"></div>
+
+    <div id="sistema" hidden>
+        <header class="header">
+            <div>
+                <div class="brand">
+                    <span class="brand-icon">🚛</span>
+                    <h1>BETAXLOG</h1>
+                </div>
+
+                <small id="infoUltimoBackup">
+                    Supabase conectado
+                </small>
             </div>
 
-            <span id="infoUltimoBackup" class="backup-info">
-                Conectando ao Supabase...
-            </span>
-        </div>
+            <div class="header-actions">
+                <span
+                    id="usuarioAtual"
+                    class="user-badge">
+                </span>
 
-        <div class="header-actions">
-            <span id="usuarioAtual" class="user-badge"></span>
-
-            <button
-                id="btnPainelAdmin"
-                class="btn btn-secondary"
-                type="button"
-                onclick="abrirModalAdmin()"
-                hidden>
-                ⚙️ Administração
-            </button>
-
-            <button
-                class="btn btn-danger"
-                type="button"
-                onclick="fazerLogout()">
-                🚪 Sair
-            </button>
-        </div>
-    </header>
-
-    <nav class="tabs">
-        <button
-            id="btnAbaOperacional"
-            class="tab-btn active"
-            type="button"
-            onclick="alternarAba('operacional')">
-            📋 Operacional
-        </button>
-
-        <button
-            id="btnAbaMotoristas"
-            class="tab-btn"
-            type="button"
-            onclick="alternarAba('motoristas')">
-            👥 Motoristas
-        </button>
-
-        <button
-            id="btnAbaRelatorios"
-            class="tab-btn"
-            type="button"
-            onclick="alternarAba('relatorios')">
-            📊 Relatórios
-        </button>
-    </nav>
-
-    <main>
-        <section id="viewOperacional" class="view">
-            <div class="grid-container">
-                <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">OPERAÇÃO</span>
-                            <h2>Montagem da escala</h2>
-                        </div>
-
-                        <span class="section-icon">📅</span>
-                    </div>
-
-                    <label for="dataEscala">
-                        Data da escala
-                    </label>
-
-                    <input
-                        id="dataEscala"
-                        type="date">
-
-                    <div class="form-grid">
-                        <div>
-                            <label for="vagasUtilitario">
-                                Utilitários
-                            </label>
-
-                            <input
-                                id="vagasUtilitario"
-                                type="number"
-                                min="0"
-                                value="0">
-                        </div>
-
-                        <div>
-                            <label for="vagasVan">
-                                Vans
-                            </label>
-
-                            <input
-                                id="vagasVan"
-                                type="number"
-                                min="0"
-                                value="0">
-                        </div>
-
-                        <div>
-                            <label for="vagasPasseio">
-                                Passeio
-                            </label>
-
-                            <input
-                                id="vagasPasseio"
-                                type="number"
-                                min="0"
-                                value="0">
-                        </div>
-                    </div>
-
-                    <button
-                        class="btn btn-primary btn-block"
-                        type="button"
-                        onclick="gerarPrevia()">
-                        🔄 Gerar prévia
-                    </button>
-
-                    <button
-                        class="btn btn-danger btn-block"
-                        type="button"
-                        onclick="excluirEscalaAtual()">
-                        🗑️ Excluir escala salva
-                    </button>
-                </article>
-
-                <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">
-                                DISPONIBILIDADE
-                            </span>
-
-                            <h2>Indisponibilidade</h2>
-                        </div>
-
-                        <span class="section-icon">🚫</span>
-                    </div>
-
-                    <p class="helper-text">
-                        Pesquise pela lupa e marque os motoristas indisponíveis.
-                    </p>
-
-                    <div class="search-box">
-                        <input
-                            id="buscaIndisponibilidade"
-                            type="search"
-                            placeholder="Pesquisar motorista..."
-                            oninput="renderizarIndisponibilidades()">
-
-                        <span class="search-icon">🔍</span>
-                    </div>
-
-                    <div
-                        id="listaMotoristasIndisponiveis"
-                        class="motoristas-lista">
-                    </div>
-                </article>
-            </div>
-
-            <article
-                id="painelEscala"
-                class="card scale-panel"
-                hidden>
-
-                <div
-                    id="avisoPreviaNaoSalva"
-                    class="orientation-message"
+                <button
+                    id="btnPainelAdmin"
+                    class="btn btn-secondary"
+                    type="button"
                     hidden>
-                    ⚠️ Esta prévia ainda não foi salva. Clique em
-                    <strong>Salvar prévia</strong> antes de baixar a imagem
-                    ou confirmar a escala.
-                </div>
+                    ⚙️ Administração
+                </button>
 
-                <div id="areaCapturaImagem">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">BETAXLOG</span>
-                            <h2>Escala operacional</h2>
-                            <p id="dataSubtituloImagem"></p>
+                <button
+                    id="btnSair"
+                    class="btn btn-danger"
+                    type="button">
+                    🚪 Sair
+                </button>
+            </div>
+        </header>
+
+        <nav class="tabs">
+            <button
+                id="btnAbaOperacional"
+                class="tab-btn active"
+                type="button">
+                📋 Operacional
+            </button>
+
+            <button
+                id="btnAbaMotoristas"
+                class="tab-btn"
+                type="button">
+                👥 Motoristas
+            </button>
+
+            <button
+                id="btnAbaRelatorios"
+                class="tab-btn"
+                type="button">
+                📊 Relatórios
+            </button>
+        </nav>
+
+        <main>
+            <section
+                id="viewOperacional"
+                class="view">
+
+                <div class="grid-container">
+                    <article class="card">
+                        <div class="card-title-flex">
+                            <h2>Montagem de escala</h2>
+                            <span>📅</span>
                         </div>
 
-                        <span
-                            id="tagStatus"
-                            class="badge-status badge-previa">
-                            PRÉVIA NÃO SALVA
-                        </span>
-                    </div>
+                        <label for="dataEscala">
+                            Data da escala
+                        </label>
 
-                    <div class="table-wrapper">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>DSP</th>
-                                    <th>Motorista</th>
-                                    <th>Veículo</th>
-                                    <th>Onda</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="tabelaEscalaBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="toolbar">
-                    <button
-                        id="btnSalvarPrevia"
-                        class="btn btn-primary"
-                        type="button"
-                        onclick="salvarPrevia()">
-                        💾 Salvar prévia
-                    </button>
-
-                    <button
-                        id="btnConfirmarDefinitiva"
-                        class="btn btn-success"
-                        type="button"
-                        onclick="confirmarDefinitiva()"
-                        disabled>
-                        ✅ Confirmar definitiva
-                    </button>
-
-                    <button
-                        id="btnBaixarImagem"
-                        class="btn btn-secondary"
-                        type="button"
-                        onclick="baixarImagemEscala()"
-                        disabled>
-                        📸 Baixar imagem
-                    </button>
-
-                    <button
-                        class="btn btn-primary"
-                        type="button"
-                        onclick="compartilharWhatsAppTexto()">
-                        📢 WhatsApp
-                    </button>
-
-                    <button
-                        class="btn btn-success"
-                        type="button"
-                        onclick="exportarExcel()">
-                        📊 Excel
-                    </button>
-                </div>
-            </article>
-        </section>
-
-        <section id="viewMotoristas" class="view" hidden>
-            <div class="grid-container">
-                <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">CADASTRO</span>
-                            <h2>Motoristas</h2>
-                        </div>
-
-                        <span
-                            id="contadorTotalMotoristas"
-                            class="badge-contador">
-                            Total: 0
-                        </span>
-                    </div>
-
-                    <label for="nomeMotorista">
-                        Nome completo
-                    </label>
-
-                    <input
-                        id="nomeMotorista"
-                        type="text"
-                        maxlength="100">
-
-                    <label for="telMotorista">
-                        Telefone
-                    </label>
-
-                    <input
-                        id="telMotorista"
-                        type="tel"
-                        maxlength="20">
-
-                    <label for="tipoVeiculo">
-                        Veículo
-                    </label>
-
-                    <select id="tipoVeiculo">
-                        <option value="Utilitário">
-                            Utilitário
-                        </option>
-
-                        <option value="Van">
-                            Van
-                        </option>
-
-                        <option value="Carro de Passeio">
-                            Carro de Passeio
-                        </option>
-                    </select>
-
-                    <button
-                        class="btn btn-primary btn-block"
-                        type="button"
-                        onclick="cadastrarMotorista()">
-                        ➕ Cadastrar motorista
-                    </button>
-
-                    <label for="filtroMotorista">
-                        Pesquisar motorista
-                    </label>
-
-                    <div class="search-box">
                         <input
-                            id="filtroMotorista"
-                            type="search"
-                            placeholder="Pesquisar..."
-                            oninput="renderizarMotoristas()">
+                            id="dataEscala"
+                            type="date">
 
-                        <span class="search-icon">🔍</span>
-                    </div>
-
-                    <div
-                        id="listaMotoristasCheck"
-                        class="motoristas-lista">
-                    </div>
-
-                    <button
-                        class="btn btn-success btn-block"
-                        type="button"
-                        onclick="exportarBackupMotoristas()">
-                        💾 Exportar cadastro
-                    </button>
-                </article>
-
-                <article class="card">
-                    <div class="card-title-flex">
-                        <h2>Prioridade e rodízio</h2>
-                        <span>⭐</span>
-                    </div>
-
-                    <p class="helper-text">
-                        Motoristas prioritários ficam fora do rodízio automático.
-                    </p>
-
-                    <div class="dual-listbox">
-                        <div class="dual-listbox-col">
-                            <div class="dual-listbox-header">
-                                <label for="listaRodizio">
-                                    No rodízio
+                        <div class="form-grid">
+                            <div>
+                                <label for="vagasUtilitario">
+                                    Utilitários
                                 </label>
 
+                                <input
+                                    id="vagasUtilitario"
+                                    type="number"
+                                    min="0"
+                                    value="0">
+                            </div>
+
+                            <div>
+                                <label for="vagasVan">
+                                    Vans
+                                </label>
+
+                                <input
+                                    id="vagasVan"
+                                    type="number"
+                                    min="0"
+                                    value="0">
+                            </div>
+
+                            <div>
+                                <label for="vagasPasseio">
+                                    Passeio
+                                </label>
+
+                                <input
+                                    id="vagasPasseio"
+                                    type="number"
+                                    min="0"
+                                    value="0">
+                            </div>
+                        </div>
+
+                        <button
+                            id="btnGerarPrevia"
+                            class="btn btn-primary btn-block"
+                            type="button">
+                            🔄 Gerar prévia
+                        </button>
+
+                        <button
+                            id="btnExcluirEscala"
+                            class="btn btn-danger btn-block"
+                            type="button">
+                            🗑️ Excluir escala
+                        </button>
+                    </article>
+
+                    <article class="card">
+                        <div class="card-title-flex">
+                            <h2>Indisponibilidade</h2>
+                            <span>🚫</span>
+                        </div>
+
+                        <p class="helper-text">
+                            Use a lupa para pesquisar motoristas.
+                        </p>
+
+                        <div class="search-box">
+                            <input
+                                id="buscaIndisponibilidade"
+                                type="search"
+                                placeholder="Pesquisar motorista...">
+
+                            <span>🔍</span>
+                        </div>
+
+                        <div
+                            id="listaIndisponibilidade"
+                            class="motoristas-lista">
+                        </div>
+                    </article>
+                </div>
+
+                <article
+                    id="painelEscala"
+                    class="card"
+                    hidden>
+
+                    <div
+                        id="avisoPrevia"
+                        class="orientation-message">
+                        ⚠️ A prévia ainda não foi salva.
+                        Salve a prévia antes de baixar a imagem
+                        ou confirmar como definitiva.
+                    </div>
+
+                    <div
+                        id="areaCapturaImagem"
+                        class="area-escala">
+
+                        <div class="card-title-flex">
+                            <div>
+                                <h2>Escala operacional</h2>
+
+                                <p
+                                    id="dataSubtitulo">
+                                </p>
+                            </div>
+
+                            <span
+                                id="statusEscala"
+                                class="badge-status badge-previa">
+                                PRÉVIA NÃO SALVA
+                            </span>
+                        </div>
+
+                        <div class="escala-scroll">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>DSP</th>
+                                        <th>Motorista</th>
+                                        <th>Veículo</th>
+                                        <th>Onda</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody
+                                    id="tabelaEscala">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="toolbar">
+                        <button
+                            id="btnSalvarPrevia"
+                            class="btn btn-primary"
+                            type="button">
+                            💾 Salvar prévia
+                        </button>
+
+                        <button
+                            id="btnBaixarImagem"
+                            class="btn btn-secondary"
+                            type="button"
+                            disabled>
+                            📸 Baixar imagem
+                        </button>
+
+                        <button
+                            id="btnDefinitiva"
+                            class="btn btn-success"
+                            type="button"
+                            disabled>
+                            ✅ Definitiva
+                        </button>
+
+                        <button
+                            id="btnWhatsApp"
+                            class="btn btn-primary"
+                            type="button">
+                            📢 WhatsApp
+                        </button>
+
+                        <button
+                            id="btnExcel"
+                            class="btn btn-success"
+                            type="button">
+                            📊 Excel
+                        </button>
+                    </div>
+                </article>
+            </section>
+
+            <section
+                id="viewMotoristas"
+                class="view"
+                hidden>
+
+                <div class="grid-container">
+                    <article class="card">
+                        <div class="card-title-flex">
+                            <h2>Motoristas</h2>
+
+                            <span
+                                id="contadorMotoristas"
+                                class="badge-contador">
+                                Total: 0
+                            </span>
+                        </div>
+
+                        <label for="nomeMotorista">
+                            Nome
+                        </label>
+
+                        <input
+                            id="nomeMotorista"
+                            type="text">
+
+                        <label for="telefoneMotorista">
+                            Telefone
+                        </label>
+
+                        <input
+                            id="telefoneMotorista"
+                            type="tel">
+
+                        <label for="veiculoMotorista">
+                            Veículo
+                        </label>
+
+                        <select id="veiculoMotorista">
+                            <option value="Utilitário">
+                                Utilitário
+                            </option>
+
+                            <option value="Van">
+                                Van
+                            </option>
+
+                            <option value="Carro de Passeio">
+                                Carro de Passeio
+                            </option>
+                        </select>
+
+                        <button
+                            id="btnCadastrarMotorista"
+                            class="btn btn-primary btn-block"
+                            type="button">
+                            ➕ Cadastrar
+                        </button>
+
+                        <label for="buscaMotorista">
+                            Pesquisar
+                        </label>
+
+                        <div class="search-box">
+                            <input
+                                id="buscaMotorista"
+                                type="search"
+                                placeholder="Pesquisar motorista...">
+
+                            <span>🔍</span>
+                        </div>
+
+                        <div
+                            id="listaMotoristas"
+                            class="motoristas-lista">
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <h2>Prioridade</h2>
+
+                        <p class="helper-text">
+                            Motoristas prioritários ficam fora do rodízio.
+                        </p>
+
+                        <div class="dual-listbox">
+                            <div>
+                                <label for="listaRodizio">
+                                    Rodízio
+                                </label>
+
+                                <select
+                                    id="listaRodizio"
+                                    multiple>
+                                </select>
+                            </div>
+
+                            <div class="dual-buttons">
                                 <button
-                                    class="link-btn"
-                                    type="button"
-                                    onclick="selecionarTodos('listaRodizio')">
-                                    Todos
+                                    id="btnParaPrioridade"
+                                    class="btn btn-primary"
+                                    type="button">
+                                    ➡️
+                                </button>
+
+                                <button
+                                    id="btnParaRodizio"
+                                    class="btn btn-secondary"
+                                    type="button">
+                                    ⬅️
                                 </button>
                             </div>
 
-                            <select
-                                id="listaRodizio"
-                                multiple>
-                            </select>
-                        </div>
-
-                        <div class="dual-listbox-botoes">
-                            <button
-                                class="btn btn-primary"
-                                type="button"
-                                onclick="moverParaPrioridade()">
-                                ➡️
-                            </button>
-
-                            <button
-                                class="btn btn-secondary"
-                                type="button"
-                                onclick="moverParaRodizio()">
-                                ⬅️
-                            </button>
-                        </div>
-
-                        <div class="dual-listbox-col">
-                            <div class="dual-listbox-header">
+                            <div>
                                 <label for="listaPrioritarios">
                                     Prioritários
                                 </label>
 
-                                <button
-                                    class="link-btn"
-                                    type="button"
-                                    onclick="selecionarTodos('listaPrioritarios')">
-                                    Todos
-                                </button>
+                                <select
+                                    id="listaPrioritarios"
+                                    multiple>
+                                </select>
                             </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
 
-                            <select
-                                id="listaPrioritarios"
-                                multiple>
-                            </select>
+            <section
+                id="viewRelatorios"
+                class="view"
+                hidden>
+
+                <article class="card">
+                    <h2>Relatórios</h2>
+
+                    <div class="form-grid">
+                        <div>
+                            <label for="relatorioInicio">
+                                Início
+                            </label>
+
+                            <input
+                                id="relatorioInicio"
+                                type="date">
+                        </div>
+
+                        <div>
+                            <label for="relatorioFim">
+                                Fim
+                            </label>
+
+                            <input
+                                id="relatorioFim"
+                                type="date">
                         </div>
                     </div>
-                </article>
-            </div>
-        </section>
 
-        <section id="viewRelatorios" class="view" hidden>
-            <article class="card">
-                <div class="card-title-flex">
-                    <h2>Relatórios</h2>
-                    <span>📊</span>
-                </div>
-
-                <div class="form-grid">
-                    <div>
-                        <label for="relatorioDataInicio">
-                            Data inicial
-                        </label>
-
-                        <input
-                            id="relatorioDataInicio"
-                            type="date">
-                    </div>
-
-                    <div>
-                        <label for="relatorioDataFim">
-                            Data final
-                        </label>
-
-                        <input
-                            id="relatorioDataFim"
-                            type="date">
-                    </div>
-
-                    <div>
-                        <label for="filtroAtalhoPeriodo">
-                            Período
-                        </label>
-
-                        <select
-                            id="filtroAtalhoPeriodo"
-                            onchange="aplicarAtalhoPeriodo()">
-                            <option value="">
-                                Personalizado
-                            </option>
-
-                            <option value="mes_atual">
-                                Mês atual
-                            </option>
-
-                            <option value="semanal">
-                                Últimos 7 dias
-                            </option>
-
-                            <option value="semestral">
-                                Últimos 6 meses
-                            </option>
-
-                            <option value="anual">
-                                Este ano
-                            </option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="toolbar">
                     <button
+                        id="btnGerarRelatorio"
                         class="btn btn-primary"
-                        type="button"
-                        onclick="gerarRelatorioHistorico()">
+                        type="button">
                         🔍 Gerar relatório
                     </button>
+                </article>
 
-                    <button
-                        class="btn btn-secondary"
-                        type="button"
-                        onclick="exportarRelatorioPDF()">
-                        📄 PDF
-                    </button>
+                <div class="kpi-container">
+                    <article class="kpi-card">
+                        <h4>Total</h4>
+                        <strong id="kpiTotal">0</strong>
+                    </article>
+
+                    <article class="kpi-card">
+                        <h4>Ativas</h4>
+                        <strong id="kpiAtivas">0</strong>
+                    </article>
+
+                    <article class="kpi-card">
+                        <h4>Canceladas</h4>
+                        <strong id="kpiCanceladas">0</strong>
+                    </article>
+
+                    <article class="kpi-card">
+                        <h4>Sucesso</h4>
+                        <strong id="kpiSucesso">0%</strong>
+                    </article>
                 </div>
-            </article>
 
-            <div class="kpi-container">
-                <article class="kpi-card">
-                    <h4>Total de rotas</h4>
-                    <strong id="kpiTotalRotas">0</strong>
+                <article class="card">
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Motorista</th>
+                                    <th>Veículo</th>
+                                    <th>Escalas</th>
+                                    <th>Cancelamentos</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabelaRelatorio"></tbody>
+                        </table>
+                    </div>
                 </article>
-
-                <article class="kpi-card">
-                    <h4>Rotas ativas</h4>
-                    <strong id="kpiRotasAtivas">0</strong>
-                </article>
-
-                <article class="kpi-card">
-                    <h4>Rotas canceladas</h4>
-                    <strong id="kpiRotasCanceladas">0</strong>
-                </article>
-
-                <article class="kpi-card">
-                    <h4>Taxa de sucesso</h4>
-                    <strong id="kpiTaxaSucesso">0%</strong>
-                </article>
-            </div>
-
-            <div class="grid-container">
-                <article class="card chart-card">
-                    <h2>Evolução</h2>
-                    <canvas id="chartEvolucao"></canvas>
-                </article>
-
-                <article class="card chart-card">
-                    <h2>Veículos</h2>
-                    <canvas id="chartVeiculos"></canvas>
-                </article>
-            </div>
-
-            <article class="card">
-                <h2>Ranking de motoristas</h2>
-
-                <div class="table-wrapper">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Motorista</th>
-                                <th>Veículo</th>
-                                <th>Escalas</th>
-                                <th>Cancelamentos</th>
-                                <th>Presença</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="tabelaRankingBody"></tbody>
-                    </table>
-                </div>
-            </article>
-        </section>
-    </main>
+            </section>
+        </main>
+    </div>
 
     <div
-        id="modalEdicao"
+        id="modalMotorista"
         class="modal-overlay"
         hidden>
 
@@ -579,30 +494,30 @@
             <h2>Editar motorista</h2>
 
             <input
-                id="editMotoristaId"
+                id="editarMotoristaId"
                 type="hidden">
 
-            <label for="editNomeMotorista">
+            <label for="editarNome">
                 Nome
             </label>
 
             <input
-                id="editNomeMotorista"
+                id="editarNome"
                 type="text">
 
-            <label for="editTelMotorista">
+            <label for="editarTelefone">
                 Telefone
             </label>
 
             <input
-                id="editTelMotorista"
+                id="editarTelefone"
                 type="tel">
 
-            <label for="editTipoVeiculo">
+            <label for="editarVeiculo">
                 Veículo
             </label>
 
-            <select id="editTipoVeiculo">
+            <select id="editarVeiculo">
                 <option value="Utilitário">
                     Utilitário
                 </option>
@@ -616,18 +531,18 @@
                 </option>
             </select>
 
-            <div class="modal-actions">
+            <div class="toolbar">
                 <button
+                    id="btnSalvarMotorista"
                     class="btn btn-success"
-                    type="button"
-                    onclick="salvarEdicaoMotorista()">
+                    type="button">
                     Salvar
                 </button>
 
                 <button
+                    id="btnFecharMotorista"
                     class="btn btn-secondary"
-                    type="button"
-                    onclick="fecharModalEdicao()">
+                    type="button">
                     Cancelar
                 </button>
             </div>
@@ -639,27 +554,28 @@
         class="modal-overlay"
         hidden>
 
-        <div class="modal-content">
-            <h2>Administração</h2>
+        <div class="modal-content modal-admin">
+            <div class="card-title-flex">
+                <h2>Administração</h2>
 
-            <p
-                id="listaUsuariosCadastrados"
-                class="helper-text">
+                <button
+                    id="btnFecharAdmin"
+                    class="btn btn-secondary"
+                    type="button">
+                    Fechar
+                </button>
+            </div>
+
+            <p class="helper-text">
+                Altere o nome, a função e o status dos usuários.
+                A exclusão remove o perfil, mas a conta de autenticação
+                deverá ser excluída no painel Authentication do Supabase.
             </p>
 
-            <button
-                class="btn btn-danger btn-block"
-                type="button"
-                onclick="apagarTodoOSistema()">
-                🗑️ Apagar dados operacionais
-            </button>
-
-            <button
-                class="btn btn-secondary btn-block"
-                type="button"
-                onclick="fecharModalAdmin()">
-                Fechar
-            </button>
+            <div
+                id="listaUsuarios"
+                class="usuarios-lista">
+            </div>
         </div>
     </div>
 
