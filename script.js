@@ -7,7 +7,7 @@ CONFIGURAÇÃO DO SUPABASE
 
 A URL do seu projeto é esta:
 
-https://bnpfdkwjdtnpfmnjoftf.supabase.co
+
 
 Cole abaixo a chave pública COMPLETA do Supabase.
 
