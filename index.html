@@ -2,39 +2,25 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>BETAXLOG | Gestão de Escalas</title>
-
     <meta
-        name="description"
-        content="Sistema de gestão de motoristas e escalas operacionais">
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>BETAXLOG - Gestão de Escalas</title>
 
     <link rel="stylesheet" href="style.css">
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
-    <script
-        src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="script.js" defer></script>
 </head>
@@ -53,7 +39,7 @@
             </div>
 
             <span id="infoUltimoBackup" class="backup-info">
-                Sincronizando com Supabase...
+                Conectando ao Supabase...
             </span>
         </div>
 
@@ -66,7 +52,7 @@
                 type="button"
                 onclick="abrirModalAdmin()"
                 hidden>
-                ⚙️ Administração
+                ⚙️ Admin
             </button>
 
             <button
@@ -105,49 +91,60 @@
     </nav>
 
     <main>
-        <!-- PAINEL OPERACIONAL -->
         <section id="viewOperacional" class="view">
-            <div class="page-grid">
+            <div class="grid-container">
                 <article class="card">
-                    <div class="card-heading">
+                    <div class="card-title-flex">
                         <div>
                             <span class="eyebrow">OPERAÇÃO</span>
-                            <h2>Montagem da escala</h2>
+                            <h2>Montagem de escala</h2>
                         </div>
+
                         <span class="section-icon">📅</span>
                     </div>
 
-                    <label for="dataEscala">Data da escala</label>
-                    <input id="dataEscala" type="date">
+                    <label for="dataEscala">
+                        Data da escala
+                    </label>
+
+                    <input
+                        id="dataEscala"
+                        type="date">
 
                     <div class="form-grid">
                         <div>
-                            <label for="vagasUtilitario">Utilitários</label>
+                            <label for="vagasUtilitario">
+                                Utilitários
+                            </label>
+
                             <input
                                 id="vagasUtilitario"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
 
                         <div>
-                            <label for="vagasVan">Vans</label>
+                            <label for="vagasVan">
+                                Vans
+                            </label>
+
                             <input
                                 id="vagasVan"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
 
                         <div>
-                            <label for="vagasPasseio">Passeio</label>
+                            <label for="vagasPasseio">
+                                Passeio
+                            </label>
+
                             <input
                                 id="vagasPasseio"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
                     </div>
@@ -156,54 +153,57 @@
                         class="btn btn-primary btn-block"
                         type="button"
                         onclick="gerarPrevia()">
-                        🔄 Gerar ou atualizar prévia
+                        🔄 Gerar prévia
                     </button>
 
                     <button
                         class="btn btn-danger btn-block"
                         type="button"
                         onclick="excluirEscalaAtual()">
-                        🗑️ Excluir escala da data
+                        🗑️ Excluir escala
                     </button>
                 </article>
 
                 <article class="card">
-                    <div class="card-heading">
+                    <div class="card-title-flex">
                         <div>
-                            <span class="eyebrow">DISPONIBILIDADE</span>
+                            <span class="eyebrow">
+                                DISPONIBILIDADE
+                            </span>
+
                             <h2>Indisponibilidade</h2>
                         </div>
+
                         <span class="section-icon">🚫</span>
                     </div>
 
                     <p class="helper-text">
-                        Marque os motoristas que não estarão disponíveis na data selecionada.
+                        Marque os motoristas indisponíveis na data selecionada.
                     </p>
 
                     <div
                         id="listaMotoristasIndisponiveis"
-                        class="check-list">
+                        class="motoristas-lista">
                     </div>
                 </article>
             </div>
 
             <article
                 id="painelEscala"
-                class="card scale-panel"
+                class="card"
                 hidden>
 
-                <div
-                    id="areaCapturaImagem"
-                    class="scale-capture">
-
-                    <div class="scale-header">
+                <div id="areaCapturaImagem">
+                    <div class="card-title-flex">
                         <div>
                             <span class="eyebrow">BETAXLOG</span>
                             <h2>Escala operacional</h2>
                             <p id="dataSubtituloImagem"></p>
                         </div>
 
-                        <span id="tagStatus" class="status-badge status-previa">
+                        <span
+                            id="tagStatus"
+                            class="badge-status badge-previa">
                             PRÉVIA
                         </span>
                     </div>
@@ -216,9 +216,10 @@
                                     <th>Motorista</th>
                                     <th>Veículo</th>
                                     <th>Onda</th>
-                                    <th>Ações</th>
+                                    <th>Ação</th>
                                 </tr>
                             </thead>
+
                             <tbody id="tabelaEscalaBody"></tbody>
                         </table>
                     </div>
@@ -243,31 +244,30 @@
                         class="btn btn-primary"
                         type="button"
                         onclick="compartilharWhatsAppTexto()">
-                        📢 Notificar WhatsApp
+                        📢 WhatsApp
                     </button>
 
                     <button
                         class="btn btn-secondary"
                         type="button"
                         onclick="gerarImagemEscalaECompartilhar()">
-                        📸 Baixar imagem
+                        📸 Imagem
                     </button>
 
                     <button
                         class="btn btn-success"
                         type="button"
                         onclick="exportarExcel()">
-                        📊 Exportar Excel
+                        📊 Excel
                     </button>
                 </div>
             </article>
         </section>
 
-        <!-- MOTORISTAS -->
         <section id="viewMotoristas" class="view" hidden>
-            <div class="page-grid">
+            <div class="grid-container">
                 <article class="card">
-                    <div class="card-heading">
+                    <div class="card-title-flex">
                         <div>
                             <span class="eyebrow">CADASTRO</span>
                             <h2>Novo motorista</h2>
@@ -275,29 +275,40 @@
 
                         <span
                             id="contadorTotalMotoristas"
-                            class="counter-badge">
+                            class="badge-contador">
                             Total: 0
                         </span>
                     </div>
 
                     <label for="nomeMotorista">Nome completo</label>
+
                     <input
                         id="nomeMotorista"
                         type="text"
-                        maxlength="100"
-                        autocomplete="off">
+                        maxlength="100">
 
-                    <label for="telMotorista">Telefone com DDD</label>
+                    <label for="telMotorista">
+                        Telefone com DDD
+                    </label>
+
                     <input
                         id="telMotorista"
                         type="tel"
-                        maxlength="20"
-                        inputmode="tel">
+                        maxlength="20">
 
-                    <label for="tipoVeiculo">Tipo de veículo</label>
+                    <label for="tipoVeiculo">
+                        Tipo de veículo
+                    </label>
+
                     <select id="tipoVeiculo">
-                        <option value="Utilitário">Utilitário</option>
-                        <option value="Van">Van</option>
+                        <option value="Utilitário">
+                            Utilitário
+                        </option>
+
+                        <option value="Van">
+                            Van
+                        </option>
+
                         <option value="Carro de Passeio">
                             Carro de Passeio
                         </option>
@@ -307,25 +318,30 @@
                         class="btn btn-primary btn-block"
                         type="button"
                         onclick="cadastrarMotorista()">
-                        ➕ Cadastrar motorista
+                        ➕ Cadastrar
                     </button>
 
                     <hr>
 
-                    <label for="filtroMotorista">Pesquisar</label>
+                    <label for="filtroMotorista">
+                        Pesquisar motorista
+                    </label>
+
                     <input
                         id="filtroMotorista"
                         type="search"
-                        placeholder="Nome do motorista"
                         oninput="renderizarMotoristas()">
 
-                    <div id="listaMotoristasCheck" class="motoristas-lista"></div>
+                    <div
+                        id="listaMotoristasCheck"
+                        class="motoristas-lista">
+                    </div>
 
                     <div class="toolbar">
                         <label class="btn btn-secondary file-button">
                             📂 Importar Excel
+
                             <input
-                                id="arquivoImportacao"
                                 type="file"
                                 accept=".xlsx,.xls"
                                 onchange="importarExcel(event)"
@@ -336,29 +352,32 @@
                             class="btn btn-success"
                             type="button"
                             onclick="exportarBackupMotoristas()">
-                            💾 Exportar cadastro
+                            💾 Exportar
                         </button>
                     </div>
                 </article>
 
                 <article class="card">
-                    <div class="card-heading">
+                    <div class="card-title-flex">
                         <div>
                             <span class="eyebrow">RODÍZIO</span>
-                            <h2>Prioridade operacional</h2>
+                            <h2>Prioridade</h2>
                         </div>
 
                         <span class="section-icon">⭐</span>
                     </div>
 
                     <p class="helper-text">
-                        Motoristas prioritários ficam fora do rodízio automático.
+                        Prioritários ficam fora do rodízio automático.
                     </p>
 
                     <div class="dual-listbox">
-                        <div class="dual-column">
-                            <div class="dual-heading">
-                                <label for="listaRodizio">No rodízio</label>
+                        <div class="dual-listbox-col">
+                            <div class="dual-listbox-col-header">
+                                <label for="listaRodizio">
+                                    No rodízio
+                                </label>
+
                                 <button
                                     class="link-btn"
                                     type="button"
@@ -369,12 +388,11 @@
 
                             <select
                                 id="listaRodizio"
-                                multiple
-                                aria-label="Motoristas no rodízio">
+                                multiple>
                             </select>
                         </div>
 
-                        <div class="dual-actions">
+                        <div class="dual-listbox-botoes">
                             <button
                                 class="btn btn-primary"
                                 type="button"
@@ -390,11 +408,12 @@
                             </button>
                         </div>
 
-                        <div class="dual-column">
-                            <div class="dual-heading">
+                        <div class="dual-listbox-col">
+                            <div class="dual-listbox-col-header">
                                 <label for="listaPrioritarios">
                                     Prioritários
                                 </label>
+
                                 <button
                                     class="link-btn"
                                     type="button"
@@ -405,8 +424,7 @@
 
                             <select
                                 id="listaPrioritarios"
-                                multiple
-                                aria-label="Motoristas prioritários">
+                                multiple>
                             </select>
                         </div>
                     </div>
@@ -416,51 +434,72 @@
                             class="btn btn-secondary"
                             type="button"
                             onclick="editarSelecionadoDualListbox()">
-                            ✏️ Editar selecionado
+                            ✏️ Editar
                         </button>
 
                         <button
                             class="btn btn-danger"
                             type="button"
                             onclick="excluirSelecionadoDualListbox()">
-                            🗑️ Excluir selecionado
+                            🗑️ Excluir
                         </button>
                     </div>
                 </article>
             </div>
         </section>
 
-        <!-- RELATÓRIOS -->
         <section id="viewRelatorios" class="view" hidden>
             <article class="card">
-                <div class="card-heading">
-                    <div>
-                        <span class="eyebrow">ANÁLISE</span>
-                        <h2>Filtros do relatório</h2>
-                    </div>
-                </div>
+                <h2>Filtros do relatório</h2>
 
-                <div class="form-grid form-grid-three">
+                <div class="form-grid">
                     <div>
-                        <label for="relatorioDataInicio">Data inicial</label>
-                        <input id="relatorioDataInicio" type="date">
-                    </div>
+                        <label for="relatorioDataInicio">
+                            Data inicial
+                        </label>
 
-                    <div>
-                        <label for="relatorioDataFim">Data final</label>
-                        <input id="relatorioDataFim" type="date">
+                        <input
+                            id="relatorioDataInicio"
+                            type="date">
                     </div>
 
                     <div>
-                        <label for="filtroAtalhoPeriodo">Período rápido</label>
+                        <label for="relatorioDataFim">
+                            Data final
+                        </label>
+
+                        <input
+                            id="relatorioDataFim"
+                            type="date">
+                    </div>
+
+                    <div>
+                        <label for="filtroAtalhoPeriodo">
+                            Período rápido
+                        </label>
+
                         <select
                             id="filtroAtalhoPeriodo"
                             onchange="aplicarAtalhoPeriodo()">
-                            <option value="">Personalizado</option>
-                            <option value="mes_atual">Mês atual</option>
-                            <option value="semanal">Últimos 7 dias</option>
-                            <option value="semestral">Últimos 6 meses</option>
-                            <option value="anual">Este ano</option>
+                            <option value="">
+                                Personalizado
+                            </option>
+
+                            <option value="mes_atual">
+                                Mês atual
+                            </option>
+
+                            <option value="semanal">
+                                Últimos 7 dias
+                            </option>
+
+                            <option value="semestral">
+                                Últimos 6 meses
+                            </option>
+
+                            <option value="anual">
+                                Este ano
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -477,41 +516,41 @@
                         class="btn btn-secondary"
                         type="button"
                         onclick="exportarRelatorioPDF()">
-                        📄 Exportar PDF
+                        📄 PDF
                     </button>
                 </div>
             </article>
 
-            <div class="kpi-grid">
+            <div class="kpi-container">
                 <article class="kpi-card">
-                    <span>Total de vagas</span>
-                    <strong id="kpiTotalRotas">0</strong>
+                    <h4>Total de vagas</h4>
+                    <div id="kpiTotalRotas" class="kpi-value">0</div>
                 </article>
 
                 <article class="kpi-card">
-                    <span>Rotas concluídas</span>
-                    <strong id="kpiRotasAtivas">0</strong>
+                    <h4>Rotas concluídas</h4>
+                    <div id="kpiRotasAtivas" class="kpi-value">0</div>
                 </article>
 
                 <article class="kpi-card">
-                    <span>Rotas canceladas</span>
-                    <strong id="kpiRotasCanceladas">0</strong>
+                    <h4>Rotas canceladas</h4>
+                    <div id="kpiRotasCanceladas" class="kpi-value">0</div>
                 </article>
 
                 <article class="kpi-card">
-                    <span>Taxa de sucesso</span>
-                    <strong id="kpiTaxaSucesso">0%</strong>
+                    <h4>Taxa de sucesso</h4>
+                    <div id="kpiTaxaSucesso" class="kpi-value">0%</div>
                 </article>
             </div>
 
-            <div class="page-grid">
+            <div class="grid-container">
                 <article class="card chart-card">
-                    <h2>Evolução de escalas</h2>
+                    <h2>Evolução</h2>
                     <canvas id="chartEvolucao"></canvas>
                 </article>
 
                 <article class="card chart-card">
-                    <h2>Distribuição por veículo</h2>
+                    <h2>Veículos</h2>
                     <canvas id="chartVeiculos"></canvas>
                 </article>
             </div>
@@ -533,8 +572,8 @@
 
                         <tbody id="tabelaRankingBody">
                             <tr>
-                                <td colspan="5" class="empty-state">
-                                    Gere um relatório para visualizar os dados.
+                                <td colspan="5">
+                                    Gere o relatório para visualizar os dados.
                                 </td>
                             </tr>
                         </tbody>
@@ -544,38 +583,49 @@
         </section>
     </main>
 
-    <!-- MODAL DE EDIÇÃO -->
     <div
         id="modalEdicao"
         class="modal-overlay"
-        hidden
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tituloModalEdicao">
+        hidden>
 
         <div class="modal-content">
-            <div class="modal-heading">
-                <h2 id="tituloModalEdicao">Editar motorista</h2>
-                <button
-                    class="modal-close"
-                    type="button"
-                    onclick="fecharModalEdicao()">
-                    ×
-                </button>
-            </div>
+            <h2>Editar motorista</h2>
 
-            <input id="editMotoristaId" type="hidden">
+            <input
+                id="editMotoristaId"
+                type="hidden">
 
-            <label for="editNomeMotorista">Nome</label>
-            <input id="editNomeMotorista" type="text" maxlength="100">
+            <label for="editNomeMotorista">
+                Nome
+            </label>
 
-            <label for="editTelMotorista">Telefone</label>
-            <input id="editTelMotorista" type="tel" maxlength="20">
+            <input
+                id="editNomeMotorista"
+                type="text"
+                maxlength="100">
 
-            <label for="editTipoVeiculo">Veículo</label>
+            <label for="editTelMotorista">
+                Telefone
+            </label>
+
+            <input
+                id="editTelMotorista"
+                type="tel"
+                maxlength="20">
+
+            <label for="editTipoVeiculo">
+                Veículo
+            </label>
+
             <select id="editTipoVeiculo">
-                <option value="Utilitário">Utilitário</option>
-                <option value="Van">Van</option>
+                <option value="Utilitário">
+                    Utilitário
+                </option>
+
+                <option value="Van">
+                    Van
+                </option>
+
                 <option value="Carro de Passeio">
                     Carro de Passeio
                 </option>
@@ -599,41 +649,30 @@
         </div>
     </div>
 
-    <!-- MODAL ADMINISTRATIVO -->
     <div
         id="modalAdmin"
         class="modal-overlay"
-        hidden
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="tituloModalAdmin">
+        hidden>
 
-        <div class="modal-content modal-admin">
-            <div class="modal-heading">
-                <h2 id="tituloModalAdmin">Administração</h2>
-                <button
-                    class="modal-close"
-                    type="button"
-                    onclick="fecharModalAdmin()">
-                    ×
-                </button>
-            </div>
+        <div class="modal-content">
+            <h2>Painel administrativo</h2>
 
-            <div class="notice notice-warning">
-                A criação de usuários deve ser feita pelo painel
-                Authentication do Supabase. Não é seguro criar usuários
-                administrativos diretamente no navegador.
-            </div>
+            <p class="helper-text">
+                Usuários devem ser criados em Supabase Authentication.
+            </p>
 
-            <h3>Usuário atual</h3>
-            <ul id="listaUsuariosCadastrados" class="users-list"></ul>
+            <ul
+                id="listaUsuariosCadastrados"
+                class="users-list">
+            </ul>
 
             <hr>
 
             <div class="danger-zone">
                 <h3>Zona de perigo</h3>
+
                 <p>
-                    Esta operação arquiva todos os motoristas e remove as escalas.
+                    Esta ação arquiva os motoristas e exclui as escalas.
                 </p>
 
                 <button
@@ -643,6 +682,13 @@
                     🗑️ Apagar dados operacionais
                 </button>
             </div>
+
+            <button
+                class="btn btn-secondary btn-block"
+                type="button"
+                onclick="fecharModalAdmin()">
+                Fechar
+            </button>
         </div>
     </div>
 
