@@ -7,10 +7,10 @@ CONFIGURAÇÃO DO SUPABASE
 */
 
 const SUPABASE_URL =
-    'COLE_AQUI_A_PROJECT_URL_COMPLETA';
+    'https://bnpfdkwjdtnpfmnjoftf.supabase.co';
 
 const SUPABASE_ANON_KEY =
-    'COLE_AQUI_A_PUBLISHABLE_KEY_COMPLETA';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJucGZka3dqZHRucGZtbmpvZnRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzMxNzcsImV4cCI6MjEwNDE0OTE3N30.5ksgMBijxazAtCtse-Lb5MqmaxcL22dVqKBMrnjSYMA';
 
 /*
 A URL deve ter este formato:
