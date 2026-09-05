@@ -2,24 +2,17 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BETAXLOG - Gestão de Escalas</title>
 
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="script.js" defer></script>
@@ -34,13 +27,13 @@
     <header class="header">
         <div>
             <div class="brand">
-                <span class="brand-icon">🚛</span>
+                <span>🚛</span>
                 <h1>BETAXLOG</h1>
             </div>
 
-            <span id="infoUltimoBackup" class="backup-info">
+            <small id="infoUltimoBackup">
                 Conectando ao Supabase...
-            </span>
+            </small>
         </div>
 
         <div class="header-actions">
@@ -64,7 +57,7 @@
         </div>
     </header>
 
-    <nav class="tabs" aria-label="Navegação principal">
+    <nav class="tabs">
         <button
             id="btnAbaOperacional"
             class="tab-btn active"
@@ -94,22 +87,13 @@
         <section id="viewOperacional" class="view">
             <div class="grid-container">
                 <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">OPERAÇÃO</span>
-                            <h2>Montagem de escala</h2>
-                        </div>
-
-                        <span class="section-icon">📅</span>
-                    </div>
+                    <h2>Montagem de Escala</h2>
 
                     <label for="dataEscala">
                         Data da escala
                     </label>
 
-                    <input
-                        id="dataEscala"
-                        type="date">
+                    <input id="dataEscala" type="date">
 
                     <div class="form-grid">
                         <div>
@@ -153,7 +137,7 @@
                         class="btn btn-primary btn-block"
                         type="button"
                         onclick="gerarPrevia()">
-                        🔄 Gerar prévia
+                        🔄 Gerar ou atualizar prévia
                     </button>
 
                     <button
@@ -165,20 +149,10 @@
                 </article>
 
                 <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">
-                                DISPONIBILIDADE
-                            </span>
-
-                            <h2>Indisponibilidade</h2>
-                        </div>
-
-                        <span class="section-icon">🚫</span>
-                    </div>
+                    <h2>Indisponibilidade</h2>
 
                     <p class="helper-text">
-                        Marque os motoristas indisponíveis na data selecionada.
+                        Marque os motoristas indisponíveis na data escolhida.
                     </p>
 
                     <div
@@ -196,8 +170,7 @@
                 <div id="areaCapturaImagem">
                     <div class="card-title-flex">
                         <div>
-                            <span class="eyebrow">BETAXLOG</span>
-                            <h2>Escala operacional</h2>
+                            <h2>Escala Operacional</h2>
                             <p id="dataSubtituloImagem"></p>
                         </div>
 
@@ -216,7 +189,7 @@
                                     <th>Motorista</th>
                                     <th>Veículo</th>
                                     <th>Onda</th>
-                                    <th>Ação</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
 
@@ -267,48 +240,33 @@
         <section id="viewMotoristas" class="view" hidden>
             <div class="grid-container">
                 <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">CADASTRO</span>
-                            <h2>Novo motorista</h2>
-                        </div>
+                    <h2>Cadastrar Motorista</h2>
 
-                        <span
-                            id="contadorTotalMotoristas"
-                            class="badge-contador">
-                            Total: 0
-                        </span>
-                    </div>
+                    <span
+                        id="contadorTotalMotoristas"
+                        class="badge-contador">
+                        Total: 0
+                    </span>
 
-                    <label for="nomeMotorista">Nome completo</label>
+                    <label for="nomeMotorista">Nome</label>
 
                     <input
                         id="nomeMotorista"
                         type="text"
                         maxlength="100">
 
-                    <label for="telMotorista">
-                        Telefone com DDD
-                    </label>
+                    <label for="telMotorista">Telefone</label>
 
                     <input
                         id="telMotorista"
                         type="tel"
                         maxlength="20">
 
-                    <label for="tipoVeiculo">
-                        Tipo de veículo
-                    </label>
+                    <label for="tipoVeiculo">Veículo</label>
 
                     <select id="tipoVeiculo">
-                        <option value="Utilitário">
-                            Utilitário
-                        </option>
-
-                        <option value="Van">
-                            Van
-                        </option>
-
+                        <option value="Utilitário">Utilitário</option>
+                        <option value="Van">Van</option>
                         <option value="Carro de Passeio">
                             Carro de Passeio
                         </option>
@@ -318,13 +276,11 @@
                         class="btn btn-primary btn-block"
                         type="button"
                         onclick="cadastrarMotorista()">
-                        ➕ Cadastrar
+                        ➕ Cadastrar motorista
                     </button>
 
-                    <hr>
-
                     <label for="filtroMotorista">
-                        Pesquisar motorista
+                        Pesquisar
                     </label>
 
                     <input
@@ -337,54 +293,43 @@
                         class="motoristas-lista">
                     </div>
 
-                    <div class="toolbar">
-                        <label class="btn btn-secondary file-button">
-                            📂 Importar Excel
+                    <label class="btn btn-secondary file-button">
+                        📂 Importar Excel
 
-                            <input
-                                type="file"
-                                accept=".xlsx,.xls"
-                                onchange="importarExcel(event)"
-                                hidden>
-                        </label>
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onchange="importarExcel(event)"
+                            hidden>
+                    </label>
 
-                        <button
-                            class="btn btn-success"
-                            type="button"
-                            onclick="exportarBackupMotoristas()">
-                            💾 Exportar
-                        </button>
-                    </div>
+                    <button
+                        class="btn btn-success btn-block"
+                        type="button"
+                        onclick="exportarBackupMotoristas()">
+                        💾 Exportar cadastro
+                    </button>
                 </article>
 
                 <article class="card">
-                    <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">RODÍZIO</span>
-                            <h2>Prioridade</h2>
-                        </div>
-
-                        <span class="section-icon">⭐</span>
-                    </div>
+                    <h2>Prioridade e Rodízio</h2>
 
                     <p class="helper-text">
-                        Prioritários ficam fora do rodízio automático.
+                        Motoristas prioritários ficam fora do rodízio automático.
                     </p>
 
                     <div class="dual-listbox">
                         <div class="dual-listbox-col">
-                            <div class="dual-listbox-col-header">
-                                <label for="listaRodizio">
-                                    No rodízio
-                                </label>
+                            <label for="listaRodizio">
+                                No rodízio
+                            </label>
 
-                                <button
-                                    class="link-btn"
-                                    type="button"
-                                    onclick="selecionarTodos('listaRodizio')">
-                                    Todos
-                                </button>
-                            </div>
+                            <button
+                                class="link-btn"
+                                type="button"
+                                onclick="selecionarTodos('listaRodizio')">
+                                Selecionar todos
+                            </button>
 
                             <select
                                 id="listaRodizio"
@@ -409,40 +354,22 @@
                         </div>
 
                         <div class="dual-listbox-col">
-                            <div class="dual-listbox-col-header">
-                                <label for="listaPrioritarios">
-                                    Prioritários
-                                </label>
+                            <label for="listaPrioritarios">
+                                Prioritários
+                            </label>
 
-                                <button
-                                    class="link-btn"
-                                    type="button"
-                                    onclick="selecionarTodos('listaPrioritarios')">
-                                    Todos
-                                </button>
-                            </div>
+                            <button
+                                class="link-btn"
+                                type="button"
+                                onclick="selecionarTodos('listaPrioritarios')">
+                                Selecionar todos
+                            </button>
 
                             <select
                                 id="listaPrioritarios"
                                 multiple>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="toolbar">
-                        <button
-                            class="btn btn-secondary"
-                            type="button"
-                            onclick="editarSelecionadoDualListbox()">
-                            ✏️ Editar
-                        </button>
-
-                        <button
-                            class="btn btn-danger"
-                            type="button"
-                            onclick="excluirSelecionadoDualListbox()">
-                            🗑️ Excluir
-                        </button>
                     </div>
                 </article>
             </div>
@@ -516,7 +443,7 @@
                         class="btn btn-secondary"
                         type="button"
                         onclick="exportarRelatorioPDF()">
-                        📄 PDF
+                        📄 Exportar PDF
                     </button>
                 </div>
             </article>
@@ -524,28 +451,28 @@
             <div class="kpi-container">
                 <article class="kpi-card">
                     <h4>Total de vagas</h4>
-                    <div id="kpiTotalRotas" class="kpi-value">0</div>
+                    <strong id="kpiTotalRotas">0</strong>
                 </article>
 
                 <article class="kpi-card">
                     <h4>Rotas concluídas</h4>
-                    <div id="kpiRotasAtivas" class="kpi-value">0</div>
+                    <strong id="kpiRotasAtivas">0</strong>
                 </article>
 
                 <article class="kpi-card">
                     <h4>Rotas canceladas</h4>
-                    <div id="kpiRotasCanceladas" class="kpi-value">0</div>
+                    <strong id="kpiRotasCanceladas">0</strong>
                 </article>
 
                 <article class="kpi-card">
                     <h4>Taxa de sucesso</h4>
-                    <div id="kpiTaxaSucesso" class="kpi-value">0%</div>
+                    <strong id="kpiTaxaSucesso">0%</strong>
                 </article>
             </div>
 
             <div class="grid-container">
                 <article class="card chart-card">
-                    <h2>Evolução</h2>
+                    <h2>Evolução de escalas</h2>
                     <canvas id="chartEvolucao"></canvas>
                 </article>
 
@@ -595,9 +522,7 @@
                 id="editMotoristaId"
                 type="hidden">
 
-            <label for="editNomeMotorista">
-                Nome
-            </label>
+            <label for="editNomeMotorista">Nome</label>
 
             <input
                 id="editNomeMotorista"
@@ -618,14 +543,8 @@
             </label>
 
             <select id="editTipoVeiculo">
-                <option value="Utilitário">
-                    Utilitário
-                </option>
-
-                <option value="Van">
-                    Van
-                </option>
-
+                <option value="Utilitário">Utilitário</option>
+                <option value="Van">Van</option>
                 <option value="Carro de Passeio">
                     Carro de Passeio
                 </option>
@@ -658,30 +577,17 @@
             <h2>Painel administrativo</h2>
 
             <p class="helper-text">
-                Usuários devem ser criados em Supabase Authentication.
+                Usuários devem ser gerenciados em Authentication no Supabase.
             </p>
 
-            <ul
-                id="listaUsuariosCadastrados"
-                class="users-list">
-            </ul>
+            <p id="listaUsuariosCadastrados"></p>
 
-            <hr>
-
-            <div class="danger-zone">
-                <h3>Zona de perigo</h3>
-
-                <p>
-                    Esta ação arquiva os motoristas e exclui as escalas.
-                </p>
-
-                <button
-                    class="btn btn-danger btn-block"
-                    type="button"
-                    onclick="apagarTodoOSistema()">
-                    🗑️ Apagar dados operacionais
-                </button>
-            </div>
+            <button
+                class="btn btn-danger btn-block"
+                type="button"
+                onclick="apagarTodoOSistema()">
+                🗑️ Apagar dados operacionais
+            </button>
 
             <button
                 class="btn btn-secondary btn-block"
