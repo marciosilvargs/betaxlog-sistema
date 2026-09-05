@@ -23,7 +23,7 @@ const SUPABASE_URL =
     'https://bnpfdkwjdtnpfmnjoftf.supabase.co';
 
 const SUPABASE_ANON_KEY =
-    'COLE_AQUI_A_CHAVE_PUBLICA_COMPLETA_DO_SUPABASE';
+    'sb_publishable_yBxNOGBJOlTuq6Eqs1zFRg_U2BJL_32';
 
 let supabaseClient = null;
 
