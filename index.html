@@ -9,15 +9,10 @@
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script src="script.js" defer></script>
@@ -36,9 +31,9 @@
                 <h1>BETAXLOG</h1>
             </div>
 
-            <span id="infoUltimoBackup" class="backup-info">
+            <small id="infoUltimoBackup">
                 Conectando ao Supabase...
-            </span>
+            </small>
         </div>
 
         <div class="header-actions">
@@ -50,7 +45,7 @@
                 type="button"
                 onclick="abrirModalAdmin()"
                 hidden>
-                ⚙️ Admin
+                ⚙️ Administração
             </button>
 
             <button
@@ -62,7 +57,7 @@
         </div>
     </header>
 
-    <nav class="tabs" aria-label="Navegação principal">
+    <nav class="tabs">
         <button
             id="btnAbaOperacional"
             class="tab-btn active"
@@ -93,8 +88,8 @@
             <div class="grid-container">
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Montagem de escala</h2>
-                        <span>📅</span>
+                        <h2>Montagem da escala</h2>
+                        <span class="section-icon">📅</span>
                     </div>
 
                     <label for="dataEscala">
@@ -115,7 +110,6 @@
                                 id="vagasUtilitario"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
 
@@ -128,7 +122,6 @@
                                 id="vagasVan"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
 
@@ -141,7 +134,6 @@
                                 id="vagasPasseio"
                                 type="number"
                                 min="0"
-                                step="1"
                                 value="0">
                         </div>
                     </div>
@@ -150,26 +142,36 @@
                         class="btn btn-primary btn-block"
                         type="button"
                         onclick="gerarPrevia()">
-                        🔄 Gerar ou atualizar prévia
+                        🔄 Gerar prévia
                     </button>
 
                     <button
                         class="btn btn-danger btn-block"
                         type="button"
                         onclick="excluirEscalaAtual()">
-                        🗑️ Excluir escala
+                        🗑️ Excluir escala salva
                     </button>
                 </article>
 
                 <article class="card">
                     <div class="card-title-flex">
                         <h2>Indisponibilidade</h2>
-                        <span>🚫</span>
+                        <span class="section-icon">🚫</span>
                     </div>
 
                     <p class="helper-text">
-                        Marque os motoristas indisponíveis na data escolhida.
+                        Use a lupa para pesquisar o motorista e marque quem não estará disponível.
                     </p>
+
+                    <div class="search-box">
+                        <input
+                            id="buscaIndisponibilidade"
+                            type="search"
+                            placeholder="Pesquisar motorista..."
+                            oninput="renderizarIndisponibilidades()">
+
+                        <span class="search-icon">🔍</span>
+                    </div>
 
                     <div
                         id="listaMotoristasIndisponiveis"
@@ -180,8 +182,17 @@
 
             <article
                 id="painelEscala"
-                class="card"
+                class="card scale-panel"
                 hidden>
+
+                <div
+                    id="avisoPreviaNaoSalva"
+                    class="orientation-message"
+                    hidden>
+                    ⚠️ Esta prévia ainda não foi salva.
+                    Clique em <strong>Salvar prévia</strong> antes de baixar a imagem
+                    ou confirmar a escala como definitiva.
+                </div>
 
                 <div id="areaCapturaImagem">
                     <div class="card-title-flex">
@@ -193,7 +204,7 @@
                         <span
                             id="tagStatus"
                             class="badge-status badge-previa">
-                            PRÉVIA
+                            PRÉVIA NÃO SALVA
                         </span>
                     </div>
 
@@ -216,17 +227,29 @@
 
                 <div class="toolbar">
                     <button
+                        id="btnSalvarPrevia"
+                        class="btn btn-primary"
+                        type="button"
+                        onclick="salvarPrevia()">
+                        💾 Salvar prévia
+                    </button>
+
+                    <button
+                        id="btnConfirmarDefinitiva"
                         class="btn btn-success"
                         type="button"
-                        onclick="confirmarDefinitiva()">
+                        onclick="confirmarDefinitiva()"
+                        disabled>
                         ✅ Confirmar definitiva
                     </button>
 
                     <button
+                        id="btnBaixarImagem"
                         class="btn btn-secondary"
                         type="button"
-                        onclick="salvarPrevia()">
-                        💾 Salvar prévia
+                        onclick="gerarImagemEscalaECompartilhar()"
+                        disabled>
+                        📸 Baixar imagem
                     </button>
 
                     <button
@@ -237,17 +260,10 @@
                     </button>
 
                     <button
-                        class="btn btn-secondary"
-                        type="button"
-                        onclick="gerarImagemEscalaECompartilhar()">
-                        📸 Baixar imagem
-                    </button>
-
-                    <button
                         class="btn btn-success"
                         type="button"
                         onclick="exportarExcel()">
-                        📊 Exportar Excel
+                        📊 Excel
                     </button>
                 </div>
             </article>
@@ -257,7 +273,7 @@
             <div class="grid-container">
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Cadastrar motorista</h2>
+                        <h2>Novo motorista</h2>
 
                         <span
                             id="contadorTotalMotoristas"
@@ -273,8 +289,7 @@
                     <input
                         id="nomeMotorista"
                         type="text"
-                        maxlength="100"
-                        autocomplete="off">
+                        maxlength="100">
 
                     <label for="telMotorista">
                         Telefone com DDD
@@ -283,11 +298,10 @@
                     <input
                         id="telMotorista"
                         type="tel"
-                        maxlength="20"
-                        autocomplete="off">
+                        maxlength="20">
 
                     <label for="tipoVeiculo">
-                        Tipo de veículo
+                        Veículo
                     </label>
 
                     <select id="tipoVeiculo">
@@ -312,28 +326,23 @@
                     </button>
 
                     <label for="filtroMotorista">
-                        Pesquisar motorista
+                        Pesquisar cadastro
                     </label>
 
-                    <input
-                        id="filtroMotorista"
-                        type="search"
-                        oninput="renderizarMotoristas()">
+                    <div class="search-box">
+                        <input
+                            id="filtroMotorista"
+                            type="search"
+                            placeholder="Pesquisar..."
+                            oninput="renderizarMotoristas()">
+
+                        <span class="search-icon">🔍</span>
+                    </div>
 
                     <div
                         id="listaMotoristasCheck"
                         class="motoristas-lista">
                     </div>
-
-                    <label class="btn btn-secondary file-button">
-                        📂 Importar Excel
-
-                        <input
-                            type="file"
-                            accept=".xlsx,.xls"
-                            onchange="importarExcel(event)"
-                            hidden>
-                    </label>
 
                     <button
                         class="btn btn-success btn-block"
@@ -344,10 +353,7 @@
                 </article>
 
                 <article class="card">
-                    <div class="card-title-flex">
-                        <h2>Prioridade e rodízio</h2>
-                        <span>⭐</span>
-                    </div>
+                    <h2>Prioridade e rodízio</h2>
 
                     <p class="helper-text">
                         Motoristas prioritários ficam fora do rodízio automático.
@@ -355,7 +361,7 @@
 
                     <div class="dual-listbox">
                         <div class="dual-listbox-col">
-                            <div class="dual-header">
+                            <div class="dual-listbox-header">
                                 <label for="listaRodizio">
                                     No rodízio
                                 </label>
@@ -391,7 +397,7 @@
                         </div>
 
                         <div class="dual-listbox-col">
-                            <div class="dual-header">
+                            <div class="dual-listbox-header">
                                 <label for="listaPrioritarios">
                                     Prioritários
                                 </label>
@@ -416,7 +422,7 @@
 
         <section id="viewRelatorios" class="view" hidden>
             <article class="card">
-                <h2>Filtros do relatório</h2>
+                <h2>Relatórios</h2>
 
                 <div class="form-grid">
                     <div>
@@ -441,7 +447,7 @@
 
                     <div>
                         <label for="filtroAtalhoPeriodo">
-                            Período rápido
+                            Período
                         </label>
 
                         <select
@@ -457,10 +463,6 @@
 
                             <option value="semanal">
                                 Últimos 7 dias
-                            </option>
-
-                            <option value="semestral">
-                                Últimos 6 meses
                             </option>
 
                             <option value="anual">
@@ -482,19 +484,19 @@
                         class="btn btn-secondary"
                         type="button"
                         onclick="exportarRelatorioPDF()">
-                        📄 PDF
+                        📄 Exportar PDF
                     </button>
                 </div>
             </article>
 
             <div class="kpi-container">
                 <article class="kpi-card">
-                    <h4>Total de vagas</h4>
+                    <h4>Total de rotas</h4>
                     <strong id="kpiTotalRotas">0</strong>
                 </article>
 
                 <article class="kpi-card">
-                    <h4>Rotas concluídas</h4>
+                    <h4>Rotas ativas</h4>
                     <strong id="kpiRotasAtivas">0</strong>
                 </article>
 
@@ -511,12 +513,12 @@
 
             <div class="grid-container">
                 <article class="card chart-card">
-                    <h2>Evolução das escalas</h2>
+                    <h2>Evolução</h2>
                     <canvas id="chartEvolucao"></canvas>
                 </article>
 
                 <article class="card chart-card">
-                    <h2>Distribuição por veículo</h2>
+                    <h2>Veículos</h2>
                     <canvas id="chartVeiculos"></canvas>
                 </article>
             </div>
@@ -536,13 +538,7 @@
                             </tr>
                         </thead>
 
-                        <tbody id="tabelaRankingBody">
-                            <tr>
-                                <td colspan="5">
-                                    Gere o relatório para visualizar os dados.
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="tabelaRankingBody"></tbody>
                     </table>
                 </div>
             </article>
@@ -562,13 +558,12 @@
                 type="hidden">
 
             <label for="editNomeMotorista">
-                Nome completo
+                Nome
             </label>
 
             <input
                 id="editNomeMotorista"
-                type="text"
-                maxlength="100">
+                type="text">
 
             <label for="editTelMotorista">
                 Telefone
@@ -576,11 +571,10 @@
 
             <input
                 id="editTelMotorista"
-                type="tel"
-                maxlength="20">
+                type="tel">
 
             <label for="editTipoVeiculo">
-                Tipo de veículo
+                Veículo
             </label>
 
             <select id="editTipoVeiculo">
@@ -597,7 +591,7 @@
                 </option>
             </select>
 
-            <div class="toolbar">
+            <div class="modal-actions">
                 <button
                     class="btn btn-success"
                     type="button"
@@ -621,11 +615,7 @@
         hidden>
 
         <div class="modal-content">
-            <h2>Painel administrativo</h2>
-
-            <p class="helper-text">
-                O controle de usuários é feito pelo Supabase Authentication.
-            </p>
+            <h2>Administração</h2>
 
             <p id="listaUsuariosCadastrados"></p>
 
