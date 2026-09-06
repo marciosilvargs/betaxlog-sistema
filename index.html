@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>BETAXLOG — Escala Operacional</title>
+    <title>BETAXLOG — Gestão Operacional</title>
 
     <link rel="stylesheet" href="style.css">
 
@@ -81,7 +81,6 @@
         </nav>
 
         <main>
-            <!-- OPERACIONAL -->
             <section id="viewOperacional" class="view">
                 <div class="grid-container">
                     <article class="card">
@@ -90,14 +89,10 @@
                                 <span class="eyebrow">OPERAÇÃO</span>
                                 <h2>Montagem de escala</h2>
                             </div>
-
                             <span class="section-icon">📅</span>
                         </div>
 
-                        <label for="dataEscala">
-                            Data da escala
-                        </label>
-
+                        <label for="dataEscala">Data da escala</label>
                         <input id="dataEscala" type="date">
 
                         <div class="form-grid">
@@ -105,7 +100,6 @@
                                 <label for="vagasUtilitario">
                                     Utilitários
                                 </label>
-
                                 <input
                                     id="vagasUtilitario"
                                     type="number"
@@ -114,10 +108,7 @@
                             </div>
 
                             <div>
-                                <label for="vagasVan">
-                                    Vans
-                                </label>
-
+                                <label for="vagasVan">Vans</label>
                                 <input
                                     id="vagasVan"
                                     type="number"
@@ -129,7 +120,6 @@
                                 <label for="vagasPasseio">
                                     Passeio
                                 </label>
-
                                 <input
                                     id="vagasPasseio"
                                     type="number"
@@ -142,14 +132,14 @@
                             id="btnGerarPrevia"
                             class="btn btn-primary btn-block"
                             type="button">
-                            🔄 Gerar ou atualizar prévia
+                            🔄 Gerar prévia
                         </button>
 
                         <button
                             id="btnExcluirEscala"
                             class="btn btn-danger btn-block"
                             type="button">
-                            🗑️ Excluir escala
+                            🗑️ Arquivar escala
                         </button>
                     </article>
 
@@ -159,25 +149,15 @@
                                 <span class="eyebrow">
                                     DISPONIBILIDADE
                                 </span>
-
                                 <h2>Indisponibilidade</h2>
                             </div>
-
                             <span class="section-icon">🚫</span>
                         </div>
 
-                        <p class="helper-text">
-                            Pesquise e marque os motoristas indisponíveis.
-                        </p>
-
-                        <div class="search-box">
-                            <input
-                                id="buscaIndisponibilidade"
-                                type="search"
-                                placeholder="Pesquisar motorista...">
-
-                            <span>🔍</span>
-                        </div>
+                        <input
+                            id="buscaIndisponibilidade"
+                            type="search"
+                            placeholder="Pesquisar motorista...">
 
                         <div
                             id="listaMotoristasIndisponiveis"
@@ -191,19 +171,16 @@
                     class="card"
                     hidden>
 
-                    <div
-                        id="avisoPrevia"
-                        class="orientation-message"
-                        hidden>
-                        ⚠️ Esta prévia ainda não foi salva.
-                        Clique em <strong>Salvar prévia</strong>
-                        antes de baixar a imagem ou confirmar a escala.
+                    <div id="avisoEscala" class="notice" hidden>
+                        Esta escala ainda não foi salva.
                     </div>
 
                     <div id="areaCapturaImagem">
                         <div class="card-title-flex">
                             <div>
-                                <span class="eyebrow">BETAXLOG</span>
+                                <span class="eyebrow">
+                                    BETAXLOG
+                                </span>
                                 <h2>Escala operacional</h2>
                                 <p id="dataSubtituloImagem"></p>
                             </div>
@@ -211,11 +188,11 @@
                             <span
                                 id="tagStatus"
                                 class="badge-status badge-previa">
-                                PRÉVIA NÃO SALVA
+                                PRÉVIA
                             </span>
                         </div>
 
-                        <div class="escala-scroll">
+                        <div class="table-scroll">
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -273,14 +250,13 @@
                 </article>
             </section>
 
-            <!-- MOTORISTAS -->
             <section id="viewMotoristas" class="view" hidden>
                 <div class="grid-container">
                     <article class="card">
                         <div class="card-title-flex">
                             <div>
                                 <span class="eyebrow">CADASTRO</span>
-                                <h2>Cadastrar motorista</h2>
+                                <h2>Novo motorista</h2>
                             </div>
 
                             <span
@@ -300,7 +276,7 @@
                             maxlength="120">
 
                         <label for="telMotorista">
-                            Telefone com DDD
+                            Telefone
                         </label>
 
                         <input
@@ -316,11 +292,7 @@
                             <option value="Utilitário">
                                 Utilitário
                             </option>
-
-                            <option value="Van">
-                                Van
-                            </option>
-
+                            <option value="Van">Van</option>
                             <option value="Carro de Passeio">
                                 Carro de Passeio
                             </option>
@@ -334,8 +306,8 @@
                         </button>
 
                         <label
-                            class="file-button btn btn-secondary"
-                            for="arquivoExcel">
+                            for="arquivoExcel"
+                            class="btn btn-secondary file-button">
                             📂 Importar Excel
                         </label>
 
@@ -360,25 +332,20 @@
                             <span
                                 id="contadorSelecionados"
                                 class="badge-contador">
-                                0 selecionados
+                                0 motoristas selecionados
                             </span>
                         </div>
 
-                        <div class="search-box">
-                            <input
-                                id="filtroMotorista"
-                                type="search"
-                                placeholder="Pesquisar motorista...">
+                        <input
+                            id="filtroMotorista"
+                            type="search"
+                            placeholder="Pesquisar motorista...">
 
-                            <span>🔍</span>
-                        </div>
-
-                        <div class="selecao-toolbar">
+                        <div class="selection-toolbar">
                             <label class="check-all">
                                 <input
                                     id="checkTodosMotoristas"
                                     type="checkbox">
-
                                 Selecionar todos
                             </label>
 
@@ -400,23 +367,14 @@
 
                 <article class="card">
                     <div class="card-title-flex">
-                        <div>
-                            <span class="eyebrow">RODÍZIO</span>
-                            <h2>Prioridade e rodízio</h2>
-                        </div>
-
+                        <h2>Prioridade e rodízio</h2>
                         <span>⭐</span>
                     </div>
-
-                    <p class="helper-text">
-                        Motoristas prioritários ficam fora do rodízio automático.
-                    </p>
 
                     <div class="dual-listbox">
                         <div class="dual-listbox-col">
                             <div class="dual-header">
                                 <strong>No rodízio</strong>
-
                                 <button
                                     id="btnTodosRodizio"
                                     class="link-btn"
@@ -425,13 +383,10 @@
                                 </button>
                             </div>
 
-                            <select
-                                id="listaRodizio"
-                                multiple>
-                            </select>
+                            <select id="listaRodizio" multiple></select>
                         </div>
 
-                        <div class="dual-listbox-actions">
+                        <div class="dual-listbox-botoes">
                             <button
                                 id="btnMoverPrioridade"
                                 class="btn btn-primary"
@@ -450,7 +405,6 @@
                         <div class="dual-listbox-col">
                             <div class="dual-header">
                                 <strong>Prioritários</strong>
-
                                 <button
                                     id="btnTodosPrioritarios"
                                     class="link-btn"
@@ -468,11 +422,10 @@
                 </article>
             </section>
 
-            <!-- RELATÓRIOS -->
             <section id="viewRelatorios" class="view" hidden>
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Filtros do relatório</h2>
+                        <h2>Relatórios</h2>
                         <span>📊</span>
                     </div>
 
@@ -481,7 +434,6 @@
                             <label for="relatorioDataInicio">
                                 Data inicial
                             </label>
-
                             <input
                                 id="relatorioDataInicio"
                                 type="date">
@@ -491,7 +443,6 @@
                             <label for="relatorioDataFim">
                                 Data final
                             </label>
-
                             <input
                                 id="relatorioDataFim"
                                 type="date">
@@ -499,26 +450,19 @@
 
                         <div>
                             <label for="filtroAtalhoPeriodo">
-                                Período rápido
+                                Período
                             </label>
 
                             <select id="filtroAtalhoPeriodo">
                                 <option value="">
                                     Personalizado
                                 </option>
-
                                 <option value="mes_atual">
                                     Mês atual
                                 </option>
-
                                 <option value="semanal">
                                     Últimos 7 dias
                                 </option>
-
-                                <option value="semestral">
-                                    Últimos 6 meses
-                                </option>
-
                                 <option value="anual">
                                     Este ano
                                 </option>
@@ -526,36 +470,34 @@
                         </div>
                     </div>
 
-                    <div class="toolbar">
-                        <button
-                            id="btnGerarRelatorio"
-                            class="btn btn-primary"
-                            type="button">
-                            🔍 Gerar relatório
-                        </button>
+                    <button
+                        id="btnGerarRelatorio"
+                        class="btn btn-primary"
+                        type="button">
+                        🔍 Gerar relatório
+                    </button>
 
-                        <button
-                            id="btnExportarPDF"
-                            class="btn btn-secondary"
-                            type="button">
-                            📄 PDF
-                        </button>
-                    </div>
+                    <button
+                        id="btnExportarPDF"
+                        class="btn btn-secondary"
+                        type="button">
+                        📄 Exportar PDF
+                    </button>
                 </article>
 
                 <div class="kpi-container">
                     <div class="kpi-card">
-                        <h4>Total de vagas</h4>
+                        <h4>Total de rotas</h4>
                         <strong id="kpiTotalRotas">0</strong>
                     </div>
 
                     <div class="kpi-card">
-                        <h4>Rotas concluídas</h4>
+                        <h4>Rotas ativas</h4>
                         <strong id="kpiRotasAtivas">0</strong>
                     </div>
 
                     <div class="kpi-card">
-                        <h4>Rotas canceladas</h4>
+                        <h4>Canceladas</h4>
                         <strong id="kpiRotasCanceladas">0</strong>
                     </div>
 
@@ -567,12 +509,12 @@
 
                 <div class="grid-container">
                     <article class="card chart-card">
-                        <h2>Evolução das escalas</h2>
+                        <h2>Evolução</h2>
                         <canvas id="chartEvolucao"></canvas>
                     </article>
 
                     <article class="card chart-card">
-                        <h2>Distribuição por veículo</h2>
+                        <h2>Veículos</h2>
                         <canvas id="chartVeiculos"></canvas>
                     </article>
                 </div>
@@ -580,7 +522,7 @@
                 <article class="card">
                     <h2>Ranking de motoristas</h2>
 
-                    <div class="table-wrapper">
+                    <div class="table-scroll">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -592,13 +534,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="tabelaRankingBody">
-                                <tr>
-                                    <td colspan="5">
-                                        Gere o relatório para visualizar os dados.
-                                    </td>
-                                </tr>
-                            </tbody>
+                            <tbody id="tabelaRankingBody"></tbody>
                         </table>
                     </div>
                 </article>
@@ -606,13 +542,60 @@
         </main>
     </div>
 
-    <!-- MODAL DE EDIÇÃO -->
+    <div
+        id="modalLoginOverlay"
+        class="modal-overlay"
+        hidden>
+        <form
+            id="formLogin"
+            class="modal-content login-card">
+
+            <div class="login-brand">
+                <span>🚛</span>
+                <h1>BETAXLOG</h1>
+            </div>
+
+            <p class="helper-text">
+                Faça login com seu usuário do Supabase.
+            </p>
+
+            <div
+                id="loginMensagem"
+                class="login-message"
+                hidden>
+            </div>
+
+            <label for="loginEmail">E-mail</label>
+            <input
+                id="loginEmail"
+                type="email"
+                autocomplete="username"
+                required>
+
+            <label for="loginSenha">Senha</label>
+            <input
+                id="loginSenha"
+                type="password"
+                autocomplete="current-password"
+                required>
+
+            <button
+                id="btnLogin"
+                class="btn btn-primary btn-block"
+                type="submit">
+                Entrar
+            </button>
+        </form>
+    </div>
+
     <div
         id="modalEdicao"
         class="modal-overlay"
         hidden>
+        <form
+            id="formEdicao"
+            class="modal-content">
 
-        <div class="modal-content">
             <h2>Editar motorista</h2>
 
             <input
@@ -623,20 +606,27 @@
                 Nome completo
             </label>
 
-            <input id="editNomeMotorista" type="text">
+            <input
+                id="editNomeMotorista"
+                type="text"
+                required>
 
             <label for="editTelMotorista">
                 Telefone
             </label>
 
-            <input id="editTelMotorista" type="tel">
+            <input
+                id="editTelMotorista"
+                type="tel">
 
             <label for="editTipoVeiculo">
                 Tipo de veículo
             </label>
 
             <select id="editTipoVeiculo">
-                <option value="Utilitário">Utilitário</option>
+                <option value="Utilitário">
+                    Utilitário
+                </option>
                 <option value="Van">Van</option>
                 <option value="Carro de Passeio">
                     Carro de Passeio
@@ -645,9 +635,8 @@
 
             <div class="toolbar">
                 <button
-                    id="btnSalvarEdicao"
                     class="btn btn-primary"
-                    type="button">
+                    type="submit">
                     Salvar
                 </button>
 
@@ -658,16 +647,14 @@
                     Cancelar
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 
-    <!-- MODAL ADMIN -->
     <div
         id="modalAdmin"
         class="modal-overlay"
         hidden>
-
-        <div class="modal-content modal-admin">
+        <div class="modal-content admin-modal">
             <div class="card-title-flex">
                 <h2>Painel administrativo</h2>
 
@@ -679,19 +666,93 @@
                 </button>
             </div>
 
-            <p class="helper-text">
-                Usuários ativos podem acessar o sistema.
-                Usuários inativos permanecem cadastrados, mas não podem entrar.
-            </p>
+            <div class="admin-tabs">
+                <button
+                    class="admin-tab active"
+                    data-admin-view="usuarios"
+                    type="button">
+                    👥 Usuários
+                </button>
 
-            <div id="listaUsuarios" class="usuarios-lista"></div>
+                <button
+                    class="admin-tab"
+                    data-admin-view="motoristasExcluidos"
+                    type="button">
+                    🚗 Motoristas arquivados
+                </button>
 
-            <button
-                id="btnApagarDados"
-                class="btn btn-danger btn-block"
-                type="button">
-                🗑️ Apagar dados operacionais
-            </button>
+                <button
+                    class="admin-tab"
+                    data-admin-view="escalasExcluidas"
+                    type="button">
+                    📅 Escalas arquivadas
+                </button>
+
+                <button
+                    class="admin-tab"
+                    data-admin-view="auditoria"
+                    type="button">
+                    📋 Auditoria
+                </button>
+            </div>
+
+            <div
+                id="adminViewUsuarios"
+                class="admin-view">
+
+                <p class="helper-text">
+                    A criação de usuários deve ser feita pelo Supabase
+                    Authentication ou por uma Edge Function protegida.
+                </p>
+
+                <div
+                    id="listaUsuariosCadastrados"
+                    class="admin-list">
+                </div>
+            </div>
+
+            <div
+                id="adminViewMotoristasExcluidos"
+                class="admin-view"
+                hidden>
+
+                <div
+                    id="listaMotoristasExcluidos"
+                    class="admin-list">
+                </div>
+            </div>
+
+            <div
+                id="adminViewEscalasExcluidas"
+                class="admin-view"
+                hidden>
+
+                <div
+                    id="listaEscalasExcluidas"
+                    class="admin-list">
+                </div>
+            </div>
+
+            <div
+                id="adminViewAuditoria"
+                class="admin-view"
+                hidden>
+
+                <div class="table-scroll">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Usuário</th>
+                                <th>Ação</th>
+                                <th>Registro afetado</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabelaAuditoriaBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
