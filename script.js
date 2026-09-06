@@ -1,29 +1,16 @@
 'use strict';
 
 /*
-============================================================
-BETAXLOG — SCRIPT PRINCIPAL
-============================================================
+    BETAXLOG
+    Script completo e seguro para o frontend.
 
-Tabelas esperadas no Supabase:
-
-- profiles
-- motoristas
-- escalas
-- indisponibilidades
-- audit_logs
-
-Importante:
-- Não utiliza localStorage.
-- Não utiliza sessionStorage.
-- Não utiliza service_role.
-- Não possui exclusão geral de dados.
-- Exclusões são lógicas usando ativo/deleted_at.
+    Importante:
+    - Não utiliza actor_id.
+    - Não utiliza service_role.
+    - Não possui apagarTodoOSistema().
+    - Não exclui todos os dados.
+    - O arquivamento de motoristas é lógico.
 */
-
-/* =========================================================
-   CONFIGURAÇÃO
-========================================================= */
 
 const SUPABASE_URL =
     'https://bnpfdkwjdtnpfmnjoftf.supabase.co';
@@ -35,28 +22,18 @@ let supabaseClient = null;
 let usuarioLogado = null;
 
 let motoristas = [];
-let escalas = {};
-let indisponibilidades = {};
-let historicoExecucoes = [];
+let escalas = [];
+let indisponibilidades = [];
+let escalaAtual = null;
 
-let motoristasSelecionados = new Set();
-let previaAtual = null;
-
-let chartEvolucao = null;
-let chartVeiculos = null;
+let chartEvolucaoInstancia = null;
+let chartVeiculosInstancia = null;
 
 const TIPOS_VEICULO = [
     'Utilitário',
     'Van',
     'Carro de Passeio'
 ];
-
-const MENSAGEM_CANCELAMENTO_AMAZON =
-    'Olá! Sua rota de hoje foi cancelada pela Amazon. Em caso de falta de outro motorista ou necessidade de rota extra, entraremos em contato para acioná-lo(a). Obrigado pela compreensão!';
-
-/* =========================================================
-   INICIALIZAÇÃO
-========================================================= */
 
 window.addEventListener(
     'DOMContentLoaded',
@@ -75,16 +52,6 @@ async function iniciarAplicacao() {
             return;
         }
 
-        if (!configuracaoValida()) {
-            esconderLoader();
-
-            mostrarLogin(
-                'Configure a chave pública do Supabase no script.js.'
-            );
-
-            return;
-        }
-
         supabaseClient =
             window.supabase.createClient(
                 SUPABASE_URL,
@@ -98,18 +65,6 @@ async function iniciarAplicacao() {
                 }
             );
 
-        supabaseClient.auth.onAuthStateChange(
-            async (evento, session) => {
-                if (
-                    evento === 'SIGNED_OUT' ||
-                    !session
-                ) {
-                    usuarioLogado = null;
-                    mostrarLogin();
-                }
-            }
-        );
-
         const autenticado =
             await verificarSessao();
 
@@ -122,8 +77,8 @@ async function iniciarAplicacao() {
         configurarEventos();
 
         await carregarMotoristas();
-        await carregarEscalas();
         await carregarIndisponibilidades();
+        await carregarEscalas();
 
         renderizarMotoristas();
         renderizarPrioridades();
@@ -131,8 +86,7 @@ async function iniciarAplicacao() {
         carregarEscalaDaData();
 
         mostrarSistema();
-        atualizarInformacoesUsuario();
-        aplicarPermissoes();
+        atualizarInformacoes();
         esconderLoader();
     } catch (error) {
         console.error(error);
@@ -145,29 +99,13 @@ async function iniciarAplicacao() {
     }
 }
 
-function configuracaoValida() {
-    const urlValida =
-        SUPABASE_URL.startsWith('https://') &&
-        SUPABASE_URL.includes('.supabase.co');
-
-    const chaveValida =
-        Boolean(
-            SUPABASE_ANON_KEY &&
-            !SUPABASE_ANON_KEY.includes(
-                'COLE_SUA'
-            ) &&
-            !SUPABASE_ANON_KEY.includes(
-                'service_role'
-            )
-        );
-
-    return urlValida && chaveValida;
-}
-
 function esconderLoader() {
-    document
-        .getElementById('appLoader')
-        ?.remove();
+    const loader =
+        document.getElementById('appLoader');
+
+    if (loader) {
+        loader.remove();
+    }
 }
 
 function mostrarSistema() {
@@ -189,59 +127,58 @@ function obterMensagemErro(error) {
 ========================================================= */
 
 async function verificarSessao() {
-    const {
-        data,
-        error
-    } = await supabaseClient.auth.getSession();
+    const resultado =
+        await supabaseClient.auth.getSession();
 
-    if (error) {
+    if (resultado.error) {
         mostrarLogin(
-            obterMensagemErro(error)
+            obterMensagemErro(resultado.error)
         );
 
         return false;
     }
 
-    if (!data.session) {
+    const session =
+        resultado.data.session;
+
+    if (!session) {
         mostrarLogin();
         return false;
     }
 
-    const {
-        data: perfil,
-        error: erroPerfil
-    } = await supabaseClient
-        .from('profiles')
-        .select(
-            'id, nome, email, role, ativo'
-        )
-        .eq(
-            'id',
-            data.session.user.id
-        )
-        .maybeSingle();
+    const perfilResultado =
+        await supabaseClient
+            .from('profiles')
+            .select(
+                'id, nome, email, role, ativo'
+            )
+            .eq(
+                'id',
+                session.user.id
+            )
+            .maybeSingle();
 
-    if (erroPerfil) {
+    if (perfilResultado.error) {
         mostrarLogin(
             `Erro ao carregar perfil: ${
-                obterMensagemErro(erroPerfil)
+                obterMensagemErro(
+                    perfilResultado.error
+                )
             }`
         );
 
         return false;
     }
 
-    if (!perfil) {
+    if (!perfilResultado.data) {
         mostrarLogin(
-            'O usuário não possui perfil cadastrado.'
+            'Este usuário não possui registro na tabela profiles.'
         );
-
-        await supabaseClient.auth.signOut();
 
         return false;
     }
 
-    if (perfil.ativo === false) {
+    if (perfilResultado.data.ativo === false) {
         await supabaseClient.auth.signOut();
 
         mostrarLogin(
@@ -252,18 +189,18 @@ async function verificarSessao() {
     }
 
     usuarioLogado = {
-        id: data.session.user.id,
+        id: session.user.id,
         email:
-            perfil.email ||
-            data.session.user.email ||
+            perfilResultado.data.email ||
+            session.user.email ||
             '',
         nome:
-            perfil.nome ||
-            data.session.user.email ||
+            perfilResultado.data.nome ||
+            session.user.email ||
             'Usuário',
         role:
-            perfil.role ||
-            'usuario',
+            perfilResultado.data.role ||
+            'operador',
         ativo: true
     };
 
@@ -299,7 +236,7 @@ function mostrarLogin(mensagem = '') {
                 </div>
 
                 <p class="login-subtitle">
-                    Acesso seguro pelo Supabase.
+                    Entre com seu usuário do Supabase.
                 </p>
 
                 <div
@@ -339,29 +276,35 @@ function mostrarLogin(mensagem = '') {
 
         document.body.appendChild(overlay);
 
-        document
-            .getElementById('formLogin')
-            .addEventListener(
+        const formLogin =
+            document.getElementById(
+                'formLogin'
+            );
+
+        if (formLogin) {
+            formLogin.addEventListener(
                 'submit',
                 efetuarLogin
             );
+        }
     }
 
     overlay.hidden = false;
-    document.body.classList.add('login-open');
+    document.body.classList.add(
+        'login-open'
+    );
 
     const campoMensagem =
         document.getElementById(
             'loginMensagem'
         );
 
-    if (mensagem) {
+    if (campoMensagem) {
         campoMensagem.textContent =
             mensagem;
 
-        campoMensagem.hidden = false;
-    } else {
-        campoMensagem.hidden = true;
+        campoMensagem.hidden =
+            mensagem.length === 0;
     }
 }
 
@@ -395,24 +338,24 @@ async function efetuarLogin(event) {
             .value;
 
     const botao =
-        document.getElementById('btnLogin');
+        document.getElementById(
+            'btnLogin'
+        );
 
     botao.disabled = true;
     botao.textContent = 'Entrando...';
 
-    const {
-        data,
-        error
-    } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password: senha
-    });
+    const resultado =
+        await supabaseClient.auth.signInWithPassword({
+            email,
+            password: senha
+        });
 
-    if (error) {
+    if (resultado.error) {
         mostrarLogin(
-            `Não foi possível entrar: ${
-                obterMensagemErro(error)
-            }`
+            obterMensagemErro(
+                resultado.error
+            )
         );
 
         botao.disabled = false;
@@ -421,28 +364,12 @@ async function efetuarLogin(event) {
         return;
     }
 
-    if (!data.session) {
-        mostrarLogin(
-            'Sessão não criada.'
-        );
-
-        botao.disabled = false;
-        botao.textContent = 'Entrar';
-
-        return;
-    }
-
-    const sucesso =
-        await verificarSessao();
-
-    if (sucesso) {
-        location.reload();
-    }
+    window.location.reload();
 }
 
 async function sair() {
     await supabaseClient.auth.signOut();
-    location.reload();
+    window.location.reload();
 }
 
 /* =========================================================
@@ -450,210 +377,214 @@ async function sair() {
 ========================================================= */
 
 function configurarEventos() {
-    document
-        .getElementById('btnSair')
-        ?.addEventListener(
-            'click',
-            sair
-        );
+    adicionarEvento(
+        'btnSair',
+        'click',
+        sair
+    );
 
-    document
-        .getElementById('btnAbaOperacional')
-        ?.addEventListener(
-            'click',
-            () => mudarAba('operacional')
-        );
+    adicionarEvento(
+        'btnPainelAdmin',
+        'click',
+        abrirPainelAdmin
+    );
 
-    document
-        .getElementById('btnAbaMotoristas')
-        ?.addEventListener(
-            'click',
-            () => mudarAba('motoristas')
-        );
+    adicionarEvento(
+        'btnAbaOperacional',
+        'click',
+        () => mudarAba('operacional')
+    );
 
-    document
-        .getElementById('btnAbaRelatorios')
-        ?.addEventListener(
-            'click',
-            () => mudarAba('relatorios')
-        );
+    adicionarEvento(
+        'btnAbaMotoristas',
+        'click',
+        () => mudarAba('motoristas')
+    );
 
-    document
-        .getElementById('btnGerarPrevia')
-        ?.addEventListener(
-            'click',
-            gerarPrevia
-        );
+    adicionarEvento(
+        'btnAbaRelatorios',
+        'click',
+        () => mudarAba('relatorios')
+    );
 
-    document
-        .getElementById('btnSalvarPrevia')
-        ?.addEventListener(
-            'click',
-            salvarPrevia
-        );
+    adicionarEvento(
+        'btnGerarPrevia',
+        'click',
+        gerarPrevia
+    );
 
-    document
-        .getElementById('btnConfirmarDefinitiva')
-        ?.addEventListener(
-            'click',
-            confirmarEscala
-        );
+    adicionarEvento(
+        'btnSalvarPrevia',
+        'click',
+        salvarPrevia
+    );
 
-    document
-        .getElementById('btnExcluirEscala')
-        ?.addEventListener(
-            'click',
-            arquivarEscalaAtual
-        );
+    adicionarEvento(
+        'btnConfirmarDefinitiva',
+        'click',
+        confirmarDefinitiva
+    );
 
-    document
-        .getElementById('btnBaixarImagem')
-        ?.addEventListener(
-            'click',
-            baixarImagemEscala
-        );
+    adicionarEvento(
+        'btnExcluirEscala',
+        'click',
+        arquivarEscala
+    );
 
-    document
-        .getElementById('btnWhatsApp')
-        ?.addEventListener(
-            'click',
-            compartilharWhatsApp
-        );
+    adicionarEvento(
+        'btnBaixarImagem',
+        'click',
+        baixarImagem
+    );
 
-    document
-        .getElementById('btnExportarEscala')
-        ?.addEventListener(
-            'click',
-            exportarEscalaExcel
-        );
+    adicionarEvento(
+        'btnWhatsApp',
+        'click',
+        compartilharWhatsApp
+    );
 
-    document
-        .getElementById('dataEscala')
-        ?.addEventListener(
-            'change',
-            async () => {
-                await carregarIndisponibilidades();
-                renderizarIndisponibilidades();
-                carregarEscalaDaData();
-            }
-        );
+    adicionarEvento(
+        'btnExportarEscala',
+        'click',
+        exportarEscalaExcel
+    );
 
-    document
-        .getElementById('btnCadastrarMotorista')
-        ?.addEventListener(
-            'click',
-            cadastrarMotorista
-        );
-
-    document
-        .getElementById('filtroMotorista')
-        ?.addEventListener(
-            'input',
-            renderizarMotoristas
-        );
-
-    document
-        .getElementById('buscaIndisponibilidade')
-        ?.addEventListener(
-            'input',
-            renderizarIndisponibilidades
-        );
-
-    document
-        .getElementById('checkTodosMotoristas')
-        ?.addEventListener(
-            'change',
-            selecionarTodosMotoristas
-        );
-
-    document
-        .getElementById('btnExcluirSelecionados')
-        ?.addEventListener(
-            'click',
-            arquivarMotoristasSelecionados
-        );
-
-    document
-        .getElementById('arquivoExcel')
-        ?.addEventListener(
-            'change',
-            importarExcel
-        );
-
-    document
-        .getElementById('btnExportarMotoristas')
-        ?.addEventListener(
-            'click',
-            exportarMotoristas
-        );
-
-    document
-        .getElementById('btnPainelAdmin')
-        ?.addEventListener(
-            'click',
-            abrirPainelAdmin
-        );
-
-    document
-        .getElementById('btnGerarRelatorio')
-        ?.addEventListener(
-            'click',
-            gerarRelatorio
-        );
-
-    document
-        .getElementById('btnExportarPDF')
-        ?.addEventListener(
-            'click',
-            exportarRelatorioPDF
-        );
-
-    document
-        .getElementById('filtroAtalhoPeriodo')
-        ?.addEventListener(
-            'change',
-            aplicarAtalhoPeriodo
-        );
-
-    document
-        .getElementById('btnFecharAdmin')
-        ?.addEventListener(
-            'click',
-            fecharPainelAdmin
-        );
-}
-
-/* =========================================================
-   PERMISSÕES E ABAS
-========================================================= */
-
-function aplicarPermissoes() {
-    const admin =
-        usuarioLogado?.role === 'admin';
-
-    const botaoAdmin =
-        document.getElementById(
-            'btnPainelAdmin'
-        );
-
-    if (botaoAdmin) {
-        botaoAdmin.hidden = !admin;
-    }
-
-    const botoesExclusao =
-        document.querySelectorAll(
-            '[data-admin-only]'
-        );
-
-    botoesExclusao.forEach(
-        botao => {
-            botao.hidden = !admin;
+    adicionarEvento(
+        'dataEscala',
+        'change',
+        async () => {
+            renderizarIndisponibilidades();
+            carregarEscalaDaData();
         }
+    );
+
+    adicionarEvento(
+        'btnCadastrarMotorista',
+        'click',
+        cadastrarMotorista
+    );
+
+    adicionarEvento(
+        'filtroMotorista',
+        'input',
+        renderizarMotoristas
+    );
+
+    adicionarEvento(
+        'buscaIndisponibilidade',
+        'input',
+        renderizarIndisponibilidades
+    );
+
+    adicionarEvento(
+        'checkTodosMotoristas',
+        'change',
+        selecionarTodosMotoristas
+    );
+
+    adicionarEvento(
+        'btnArquivarSelecionados',
+        'click',
+        arquivarSelecionados
+    );
+
+    adicionarEvento(
+        'arquivoExcel',
+        'change',
+        importarExcel
+    );
+
+    adicionarEvento(
+        'btnExportarMotoristas',
+        'click',
+        exportarMotoristas
+    );
+
+    adicionarEvento(
+        'btnTodosRodizio',
+        'click',
+        selecionarTodosRodizio
+    );
+
+    adicionarEvento(
+        'btnTodosPrioritarios',
+        'click',
+        selecionarTodosPrioritarios
+    );
+
+    adicionarEvento(
+        'btnMoverParaPrioridade',
+        'click',
+        moverParaPrioridade
+    );
+
+    adicionarEvento(
+        'btnMoverParaRodizio',
+        'click',
+        moverParaRodizio
+    );
+
+    adicionarEvento(
+        'btnGerarRelatorio',
+        'click',
+        gerarRelatorio
+    );
+
+    adicionarEvento(
+        'btnExportarPDF',
+        'click',
+        exportarPDF
+    );
+
+    adicionarEvento(
+        'filtroAtalhoPeriodo',
+        'change',
+        aplicarAtalhoPeriodo
+    );
+
+    adicionarEvento(
+        'formEditarMotorista',
+        'submit',
+        salvarEdicaoMotorista
+    );
+
+    adicionarEvento(
+        'btnCancelarEdicao',
+        'click',
+        fecharModalEdicao
+    );
+
+    adicionarEvento(
+        'btnFecharAdmin',
+        'click',
+        fecharPainelAdmin
     );
 }
 
+function adicionarEvento(
+    id,
+    tipo,
+    funcao
+) {
+    const elemento =
+        document.getElementById(id);
+
+    if (!elemento) {
+        return;
+    }
+
+    elemento.addEventListener(
+        tipo,
+        funcao
+    );
+}
+
+/* =========================================================
+   ABAS E PERMISSÕES
+========================================================= */
+
 function mudarAba(nome) {
-    const abas = {
+    const views = {
         operacional:
             'viewOperacional',
         motoristas:
@@ -662,37 +593,46 @@ function mudarAba(nome) {
             'viewRelatorios'
     };
 
-    Object.values(abas).forEach(
-        id => {
-            const elemento =
+    Object.entries(views).forEach(
+        ([chave, id]) => {
+            const view =
                 document.getElementById(id);
 
-            if (elemento) {
-                elemento.hidden =
-                    id !== abas[nome];
+            if (view) {
+                view.hidden =
+                    chave !== nome;
+            }
+
+            const botao =
+                document.getElementById(
+                    `btnAba${
+                        chave
+                            .charAt(0)
+                            .toUpperCase() +
+                        chave.slice(1)
+                    }`
+                );
+
+            if (botao) {
+                botao.classList.toggle(
+                    'active',
+                    chave === nome
+                );
             }
         }
     );
+}
 
-    document
-        .querySelectorAll(
-            '.tabs > .tab-btn'
-        )
-        .forEach(botao => {
-            botao.classList.remove(
-                'active'
-            );
-        });
-
+function aplicarPermissoes() {
     const botao =
         document.getElementById(
-            `btnAba${
-                nome.charAt(0).toUpperCase() +
-                nome.slice(1)
-            }`
+            'btnPainelAdmin'
         );
 
-    botao?.classList.add('active');
+    if (botao) {
+        botao.hidden =
+            usuarioLogado?.role !== 'admin';
+    }
 }
 
 /* =========================================================
@@ -700,40 +640,40 @@ function mudarAba(nome) {
 ========================================================= */
 
 async function carregarMotoristas() {
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('motoristas')
-        .select('*')
-        .eq('ativo', true)
-        .is('deleted_at', null)
-        .order('prioridade', {
-            ascending: false
-        })
-        .order('nome');
+    const resultado =
+        await supabaseClient
+            .from('motoristas')
+            .select('*')
+            .eq('ativo', true)
+            .order('nome');
 
-    if (error) {
+    if (resultado.error) {
         mostrarToast(
-            `Erro ao carregar motoristas: ${
-                obterMensagemErro(error)
+            `Motoristas: ${
+                obterMensagemErro(
+                    resultado.error
+                )
             }`,
             'error'
         );
 
+        motoristas = [];
         return;
     }
 
-    motoristas = data || [];
+    motoristas =
+        resultado.data || [];
 }
 
 function renderizarMotoristas() {
     const lista =
         document.getElementById(
-            'listaMotoristasCheck'
+            'listaMotoristas'
         );
 
-    if (!lista) return;
+    if (!lista) {
+        return;
+    }
 
     const filtro =
         document
@@ -744,18 +684,22 @@ function renderizarMotoristas() {
             .toLowerCase()
             .trim() || '';
 
+    lista.replaceChildren();
+
     const filtrados =
         motoristas.filter(
             motorista =>
-                motorista.nome
-                    .toLowerCase()
-                    .includes(filtro) ||
                 String(
-                    motorista.telefone || ''
-                ).includes(filtro)
+                    motorista.nome || ''
+                )
+                    .toLowerCase()
+                    .includes(filtro)
         );
 
-    lista.replaceChildren();
+    if (filtrados.length === 0) {
+        lista.textContent =
+            'Nenhum motorista encontrado.';
+    }
 
     filtrados.forEach(
         motorista => {
@@ -765,75 +709,67 @@ function renderizarMotoristas() {
                 );
 
             item.className =
-                'checkbox-item';
+                'motorista-item';
 
-            const label =
+            const info =
                 document.createElement(
-                    'label'
+                    'div'
                 );
 
-            const checkbox =
+            info.className =
+                'motorista-info';
+
+            const nome =
                 document.createElement(
-                    'input'
+                    'div'
                 );
 
-            checkbox.type =
-                'checkbox';
+            nome.className =
+                'motorista-nome';
 
-            checkbox.checked =
-                motoristasSelecionados.has(
-                    motorista.id
-                );
+            nome.textContent =
+                motorista.nome || '-';
 
-            checkbox.dataset.id =
-                motorista.id;
-
-            checkbox.addEventListener(
-                'change',
-                () => {
-                    if (checkbox.checked) {
-                        motoristasSelecionados
-                            .add(
-                                motorista.id
-                            );
-                    } else {
-                        motoristasSelecionados
-                            .delete(
-                                motorista.id
-                            );
-                    }
-
-                    atualizarSelecaoMotoristas();
-                }
-            );
-
-            const texto =
+            const detalhes =
                 document.createElement(
-                    'span'
+                    'div'
                 );
 
-            texto.textContent =
-                `${motorista.nome} · ${
-                    motorista.tipo_veiculo ||
-                    motorista.veiculo ||
-                    '-'
+            detalhes.className =
+                'motorista-detalhes';
+
+            detalhes.textContent =
+                `${motorista.telefone || '-'} · ${
+                    motorista.veiculo || 'Utilitário'
+                }${
+                    motorista.prioridade
+                        ? ' · Prioritário'
+                        : ''
                 }`;
 
-            label.append(
-                checkbox,
-                texto
+            info.append(
+                nome,
+                detalhes
             );
+
+            const acoes =
+                document.createElement(
+                    'div'
+                );
+
+            acoes.className =
+                'motorista-acoes';
 
             const editar =
                 document.createElement(
                     'button'
                 );
 
+            editar.className =
+                'btn btn-secondary btn-small';
+
             editar.type =
                 'button';
-
-            editar.className =
-                'btn btn-secondary btn-icon';
 
             editar.textContent =
                 'Editar';
@@ -841,14 +777,41 @@ function renderizarMotoristas() {
             editar.addEventListener(
                 'click',
                 () =>
-                    editarMotorista(
+                    abrirModalEdicao(
                         motorista
                     )
             );
 
+            const arquivar =
+                document.createElement(
+                    'button'
+                );
+
+            arquivar.className =
+                'btn btn-danger btn-small';
+
+            arquivar.type =
+                'button';
+
+            arquivar.textContent =
+                'Arquivar';
+
+            arquivar.addEventListener(
+                'click',
+                () =>
+                    arquivarMotorista(
+                        motorista
+                    )
+            );
+
+            acoes.append(
+                editar,
+                arquivar
+            );
+
             item.append(
-                label,
-                editar
+                info,
+                acoes
             );
 
             lista.appendChild(item);
@@ -859,8 +822,308 @@ function renderizarMotoristas() {
         'contadorTotalMotoristas',
         `Total: ${motoristas.length}`
     );
+}
 
-    atualizarSelecaoMotoristas();
+async function cadastrarMotorista() {
+    const nome =
+        document
+            .getElementById(
+                'nomeMotorista'
+            )
+            .value
+            .trim();
+
+    const telefone =
+        document
+            .getElementById(
+                'telMotorista'
+            )
+            .value
+            .trim();
+
+    const veiculo =
+        document
+            .getElementById(
+                'tipoVeiculo'
+            )
+            .value;
+
+    const prioridade =
+        document
+            .getElementById(
+                'motoristaPrioridade'
+            )
+            .checked;
+
+    if (!nome) {
+        mostrarToast(
+            'Informe o nome do motorista.',
+            'error'
+        );
+
+        return;
+    }
+
+    const resultado =
+        await supabaseClient
+            .from('motoristas')
+            .insert({
+                nome,
+                telefone,
+                veiculo,
+                prioridade,
+                ativo: true
+            })
+            .select()
+            .single();
+
+    if (resultado.error) {
+        mostrarToast(
+            obterMensagemErro(
+                resultado.error
+            ),
+            'error'
+        );
+
+        return;
+    }
+
+    await registrarAuditoria(
+        'CRIAR_MOTORISTA',
+        'motorista',
+        resultado.data.id,
+        nome,
+        {
+            veiculo,
+            prioridade
+        }
+    );
+
+    document
+        .getElementById(
+            'nomeMotorista'
+        )
+        .value = '';
+
+    document
+        .getElementById(
+            'telMotorista'
+        )
+        .value = '';
+
+    document
+        .getElementById(
+            'motoristaPrioridade'
+        )
+        .checked = false;
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+
+    mostrarToast(
+        'Motorista cadastrado.',
+        'success'
+    );
+}
+
+function abrirModalEdicao(motorista) {
+    document
+        .getElementById(
+            'editarMotoristaId'
+        )
+        .value =
+        motorista.id;
+
+    document
+        .getElementById(
+            'editarMotoristaNome'
+        )
+        .value =
+        motorista.nome || '';
+
+    document
+        .getElementById(
+            'editarMotoristaTelefone'
+        )
+        .value =
+        motorista.telefone || '';
+
+    document
+        .getElementById(
+            'editarMotoristaVeiculo'
+        )
+        .value =
+        motorista.veiculo || 'Utilitário';
+
+    document
+        .getElementById(
+            'editarMotoristaPrioridade'
+        )
+        .checked =
+        motorista.prioridade === true;
+
+    document
+        .getElementById(
+            'modalEditarMotorista'
+        )
+        .hidden = false;
+}
+
+function fecharModalEdicao() {
+    document
+        .getElementById(
+            'modalEditarMotorista'
+        )
+        .hidden = true;
+}
+
+async function salvarEdicaoMotorista(event) {
+    event.preventDefault();
+
+    const id =
+        document
+            .getElementById(
+                'editarMotoristaId'
+            )
+            .value;
+
+    const nome =
+        document
+            .getElementById(
+                'editarMotoristaNome'
+            )
+            .value
+            .trim();
+
+    const telefone =
+        document
+            .getElementById(
+                'editarMotoristaTelefone'
+            )
+            .value
+            .trim();
+
+    const veiculo =
+        document
+            .getElementById(
+                'editarMotoristaVeiculo'
+            )
+            .value;
+
+    const prioridade =
+        document
+            .getElementById(
+                'editarMotoristaPrioridade'
+            )
+            .checked;
+
+    const resultado =
+        await supabaseClient
+            .from('motoristas')
+            .update({
+                nome,
+                telefone,
+                veiculo,
+                prioridade,
+                updated_at:
+                    new Date().toISOString()
+            })
+            .eq(
+                'id',
+                id
+            );
+
+    if (resultado.error) {
+        mostrarToast(
+            obterMensagemErro(
+                resultado.error
+            ),
+            'error'
+        );
+
+        return;
+    }
+
+    await registrarAuditoria(
+        'EDITAR_MOTORISTA',
+        'motorista',
+        id,
+        nome,
+        {
+            veiculo,
+            prioridade
+        }
+    );
+
+    fecharModalEdicao();
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+
+    mostrarToast(
+        'Motorista atualizado.',
+        'success'
+    );
+}
+
+async function arquivarMotorista(motorista) {
+    const confirmar =
+        window.confirm(
+            `Arquivar o motorista "${motorista.nome}"?`
+        );
+
+    if (!confirmar) {
+        return;
+    }
+
+    const resultado =
+        await supabaseClient
+            .from('motoristas')
+            .update({
+                ativo: false,
+                deleted_at:
+                    new Date().toISOString(),
+                deleted_by:
+                    usuarioLogado.id,
+                deleted_reason:
+                    'Arquivamento pelo sistema'
+            })
+            .eq(
+                'id',
+                motorista.id
+            );
+
+    if (resultado.error) {
+        mostrarToast(
+            obterMensagemErro(
+                resultado.error
+            ),
+            'error'
+        );
+
+        return;
+    }
+
+    await registrarAuditoria(
+        'ARQUIVAR_MOTORISTA',
+        'motorista',
+        motorista.id,
+        motorista.nome,
+        {}
+    );
+
+    await carregarMotoristas();
+
+    renderizarMotoristas();
+    renderizarPrioridades();
+
+    mostrarToast(
+        'Motorista arquivado.',
+        'success'
+    );
 }
 
 function selecionarTodosMotoristas(event) {
@@ -879,324 +1142,72 @@ function selecionarTodosMotoristas(event) {
     motoristas
         .filter(
             motorista =>
-                motorista.nome
+                String(
+                    motorista.nome || ''
+                )
                     .toLowerCase()
                     .includes(filtro)
         )
         .forEach(
             motorista => {
-                if (marcado) {
-                    motoristasSelecionados
-                        .add(
-                            motorista.id
-                        );
-                } else {
-                    motoristasSelecionados
-                        .delete(
-                            motorista.id
-                        );
-                }
+                motorista._selecionado =
+                    marcado;
             }
         );
-
-    renderizarMotoristas();
 }
 
-function atualizarSelecaoMotoristas() {
-    const quantidade =
-        motoristasSelecionados.size;
-
-    definirTexto(
-        'contadorSelecionados',
-        `${quantidade} selecionado${
-            quantidade === 1 ? '' : 's'
-        }`
-    );
-
-    const botao =
-        document.getElementById(
-            'btnExcluirSelecionados'
+async function arquivarSelecionados() {
+    const selecionados =
+        motoristas.filter(
+            motorista =>
+                motorista._selecionado === true
         );
 
-    if (botao) {
-        botao.disabled =
-            quantidade === 0 ||
-            usuarioLogado?.role !== 'admin';
-    }
-
-    const todos =
-        document.getElementById(
-            'checkTodosMotoristas'
-        );
-
-    if (todos) {
-        const visiveis =
-            document.querySelectorAll(
-                '#listaMotoristasCheck input[type="checkbox"]'
-            );
-
-        todos.checked =
-            visiveis.length > 0 &&
-            Array.from(visiveis)
-                .every(
-                    checkbox =>
-                        checkbox.checked
-                );
-    }
-}
-
-async function cadastrarMotorista() {
-    const nome =
-        document
-            .getElementById('nomeMotorista')
-            ?.value
-            .trim();
-
-    const telefone =
-        document
-            .getElementById('telMotorista')
-            ?.value
-            .trim();
-
-    const tipo =
-        document
-            .getElementById('tipoVeiculo')
-            ?.value;
-
-    if (!nome || !tipo) {
+    if (selecionados.length === 0) {
         mostrarToast(
-            'Informe o nome e o tipo de veículo.',
-            'error'
+            'Selecione pelo menos um motorista.',
+            'warning'
         );
 
         return;
     }
 
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('motoristas')
-        .insert({
-            nome,
-            telefone,
-            tipo_veiculo: tipo,
-            ativo: true,
-            prioridade: false,
-            created_by:
-                usuarioLogado.id
-        })
-        .select()
-        .single();
-
-    if (error) {
-        mostrarToast(
-            `Erro ao cadastrar: ${
-                obterMensagemErro(error)
-            }`,
-            'error'
+    const confirmar =
+        window.confirm(
+            `Arquivar ${selecionados.length} motorista(s)?`
         );
 
+    if (!confirmar) {
         return;
     }
 
-    await registrarAuditoria(
-        'CRIAR_MOTORISTA',
-        'motorista',
-        data.id,
-        data.nome,
-        {
-            tipo_veiculo: tipo
-        }
-    );
-
-    document
-        .getElementById('nomeMotorista')
-        .value = '';
-
-    document
-        .getElementById('telMotorista')
-        .value = '';
-
-    await carregarMotoristas();
-
-    renderizarMotoristas();
-    renderizarPrioridades();
-
-    mostrarToast(
-        'Motorista cadastrado.',
-        'success'
-    );
-}
-
-async function editarMotorista(motorista) {
-    const nome =
-        prompt(
-            'Nome do motorista:',
-            motorista.nome
-        );
-
-    if (nome === null) return;
-
-    const telefone =
-        prompt(
-            'Telefone:',
-            motorista.telefone || ''
-        );
-
-    if (telefone === null) return;
-
-    const tipo =
-        prompt(
-            'Tipo de veículo:',
-            motorista.tipo_veiculo ||
-            motorista.veiculo ||
-            'Utilitário'
-        );
-
-    if (tipo === null) return;
-
-    if (
-        !nome.trim() ||
-        !TIPOS_VEICULO.includes(tipo)
-    ) {
-        mostrarToast(
-            'Nome ou tipo de veículo inválido.',
-            'error'
-        );
-
-        return;
-    }
-
-    const {
-        error
-    } = await supabaseClient
-        .from('motoristas')
-        .update({
-            nome: nome.trim(),
-            telefone: telefone.trim(),
-            tipo_veiculo: tipo,
-            updated_at:
-                new Date().toISOString()
-        })
-        .eq(
-            'id',
-            motorista.id
-        );
-
-    if (error) {
-        mostrarToast(
-            obterMensagemErro(error),
-            'error'
-        );
-
-        return;
-    }
-
-    await registrarAuditoria(
-        'EDITAR_MOTORISTA',
-        'motorista',
-        motorista.id,
-        nome.trim(),
-        {}
-    );
-
-    await carregarMotoristas();
-
-    renderizarMotoristas();
-    renderizarPrioridades();
-
-    mostrarToast(
-        'Motorista atualizado.',
-        'success'
-    );
-}
-
-async function arquivarMotoristasSelecionados() {
-    if (usuarioLogado?.role !== 'admin') {
-        mostrarToast(
-            'Somente administradores podem arquivar motoristas.',
-            'error'
-        );
-
-        return;
-    }
-
-    const ids =
-        Array.from(
-            motoristasSelecionados
-        );
-
-    if (!ids.length) return;
-
-    const confirmacao =
-        confirm(
-            `Arquivar ${ids.length} motorista(s)?`
-        );
-
-    if (!confirmacao) return;
-
-    const motivo =
-        prompt(
-            'Informe o motivo do arquivamento:'
-        );
-
-    if (!motivo?.trim()) {
-        mostrarToast(
-            'Informe um motivo.',
-            'error'
-        );
-
-        return;
-    }
-
-    const {
-        error
-    } = await supabaseClient
-        .from('motoristas')
-        .update({
-            ativo: false,
-            deleted_at:
-                new Date().toISOString(),
-            deleted_by:
-                usuarioLogado.id,
-            deleted_reason:
-                motivo.trim(),
-            updated_at:
-                new Date().toISOString()
-        })
-        .in(
-            'id',
-            ids
-        );
-
-    if (error) {
-        mostrarToast(
-            obterMensagemErro(error),
-            'error'
-        );
-
-        return;
-    }
-
-    for (const id of ids) {
-        const motorista =
-            motoristas.find(
-                item => item.id === id
+    for (const motorista of selecionados) {
+        await supabaseClient
+            .from('motoristas')
+            .update({
+                ativo: false,
+                deleted_at:
+                    new Date().toISOString(),
+                deleted_by:
+                    usuarioLogado.id,
+                deleted_reason:
+                    'Arquivamento em lote'
+            })
+            .eq(
+                'id',
+                motorista.id
             );
 
         await registrarAuditoria(
             'ARQUIVAR_MOTORISTA',
             'motorista',
-            id,
-            motorista?.nome || id,
+            motorista.id,
+            motorista.nome,
             {
-                motivo: motivo.trim()
+                lote: true
             }
         );
     }
-
-    motoristasSelecionados.clear();
 
     await carregarMotoristas();
 
@@ -1210,11 +1221,11 @@ async function arquivarMotoristasSelecionados() {
 }
 
 /* =========================================================
-   PRIORIDADE E RODÍZIO
+   PRIORIDADES
 ========================================================= */
 
 function renderizarPrioridades() {
-    const noRodizio =
+    const rodizio =
         document.getElementById(
             'listaNoRodizio'
         );
@@ -1224,11 +1235,11 @@ function renderizarPrioridades() {
             'listaPrioritarios'
         );
 
-    if (!noRodizio || !prioritarios) {
+    if (!rodizio || !prioritarios) {
         return;
     }
 
-    noRodizio.replaceChildren();
+    rodizio.replaceChildren();
     prioritarios.replaceChildren();
 
     motoristas.forEach(
@@ -1249,7 +1260,7 @@ function renderizarPrioridades() {
                     option
                 );
             } else {
-                noRodizio.appendChild(
+                rodizio.appendChild(
                     option
                 );
             }
@@ -1257,29 +1268,87 @@ function renderizarPrioridades() {
     );
 }
 
-async function alterarPrioridade(
-    ids,
-    prioridade
-) {
-    if (!ids.length) return;
+function selecionarTodosRodizio() {
+    marcarTodasOpcoes(
+        'listaNoRodizio'
+    );
+}
 
-    const {
-        error
-    } = await supabaseClient
-        .from('motoristas')
-        .update({
-            prioridade,
-            updated_at:
-                new Date().toISOString()
-        })
-        .in(
-            'id',
-            ids
+function selecionarTodosPrioritarios() {
+    marcarTodasOpcoes(
+        'listaPrioritarios'
+    );
+}
+
+function marcarTodasOpcoes(id) {
+    const select =
+        document.getElementById(id);
+
+    if (!select) {
+        return;
+    }
+
+    Array.from(
+        select.options
+    ).forEach(
+        option => {
+            option.selected = true;
+        }
+    );
+}
+
+async function moverParaPrioridade() {
+    await atualizarPrioridadeSelecionados(
+        'listaNoRodizio',
+        true
+    );
+}
+
+async function moverParaRodizio() {
+    await atualizarPrioridadeSelecionados(
+        'listaPrioritarios',
+        false
+    );
+}
+
+async function atualizarPrioridadeSelecionados(
+    id,
+    valor
+) {
+    const select =
+        document.getElementById(id);
+
+    if (!select) {
+        return;
+    }
+
+    const ids =
+        Array.from(
+            select.selectedOptions
+        ).map(
+            option => option.value
         );
 
-    if (error) {
+    if (ids.length === 0) {
+        return;
+    }
+
+    const resultado =
+        await supabaseClient
+            .from('motoristas')
+            .update({
+                prioridade: valor
+            })
+            .in(
+                'id',
+                ids
+            );
+
+    if (resultado.error) {
         mostrarToast(
-            obterMensagemErro(error),
+            obterMensagemErro(
+                resultado.error
+            ),
             'error'
         );
 
@@ -1289,6 +1358,11 @@ async function alterarPrioridade(
     await carregarMotoristas();
     renderizarPrioridades();
     renderizarMotoristas();
+
+    mostrarToast(
+        'Prioridade atualizada.',
+        'success'
+    );
 }
 
 /* =========================================================
@@ -1299,39 +1373,22 @@ async function carregarIndisponibilidades() {
     const data =
         obterDataEscala();
 
-    if (!data) return;
+    const resultado =
+        await supabaseClient
+            .from('indisponibilidades')
+            .select('*')
+            .eq(
+                'data',
+                data
+            );
 
-    const {
-        data: registros,
-        error
-    } = await supabaseClient
-        .from('indisponibilidades')
-        .select('*')
-        .eq(
-            'data',
-            data
-        );
-
-    if (error) {
-        console.warn(
-            'Tabela de indisponibilidades:',
-            error.message
-        );
-
-        indisponibilidades[data] =
-            new Set();
-
+    if (resultado.error) {
+        indisponibilidades = [];
         return;
     }
 
-    indisponibilidades[data] =
-        new Set(
-            (registros || [])
-                .map(
-                    item =>
-                        item.motorista_id
-                )
-        );
+    indisponibilidades =
+        resultado.data || [];
 }
 
 function renderizarIndisponibilidades() {
@@ -1340,10 +1397,9 @@ function renderizarIndisponibilidades() {
             'listaMotoristasIndisponiveis'
         );
 
-    if (!lista) return;
-
-    const data =
-        obterDataEscala();
+    if (!lista) {
+        return;
+    }
 
     const busca =
         document
@@ -1354,16 +1410,14 @@ function renderizarIndisponibilidades() {
             .toLowerCase()
             .trim() || '';
 
-    const indisponiveis =
-        indisponibilidades[data] ||
-        new Set();
-
     lista.replaceChildren();
 
     motoristas
         .filter(
             motorista =>
-                motorista.nome
+                String(
+                    motorista.nome || ''
+                )
                     .toLowerCase()
                     .includes(busca)
         )
@@ -1371,16 +1425,11 @@ function renderizarIndisponibilidades() {
             motorista => {
                 const item =
                     document.createElement(
-                        'div'
+                        'label'
                     );
 
                 item.className =
-                    'checkbox-item';
-
-                const label =
-                    document.createElement(
-                        'label'
-                    );
+                    'check-line';
 
                 const checkbox =
                     document.createElement(
@@ -1391,16 +1440,18 @@ function renderizarIndisponibilidades() {
                     'checkbox';
 
                 checkbox.checked =
-                    indisponiveis.has(
-                        motorista.id
+                    indisponibilidades.some(
+                        registro =>
+                            registro.motorista_id ===
+                            motorista.id
                     );
 
                 checkbox.addEventListener(
                     'change',
-                    () =>
+                    event =>
                         alterarIndisponibilidade(
-                            motorista.id,
-                            checkbox.checked
+                            motorista,
+                            event.target.checked
                         )
                 );
 
@@ -1412,92 +1463,76 @@ function renderizarIndisponibilidades() {
                 texto.textContent =
                     motorista.nome;
 
-                label.append(
+                item.append(
                     checkbox,
                     texto
                 );
 
-                item.appendChild(label);
                 lista.appendChild(item);
             }
         );
 }
 
 async function alterarIndisponibilidade(
-    motoristaId,
+    motorista,
     indisponivel
 ) {
     const data =
         obterDataEscala();
 
-    if (!data) return;
-
-    if (!indisponibilidades[data]) {
-        indisponibilidades[data] =
-            new Set();
-    }
-
     if (indisponivel) {
-        const {
-            error
-        } = await supabaseClient
-            .from('indisponibilidades')
-            .upsert(
-                {
-                    data,
-                    motorista_id:
-                        motoristaId,
-                    motivo:
-                        'Indisponível informado pelo operador'
-                },
-                {
-                    onConflict:
-                        'data,motorista_id'
-                }
-            );
+        const resultado =
+            await supabaseClient
+                .from('indisponibilidades')
+                .upsert(
+                    {
+                        data,
+                        motorista_id:
+                            motorista.id
+                    },
+                    {
+                        onConflict:
+                            'data,motorista_id'
+                    }
+                );
 
-        if (error) {
+        if (resultado.error) {
             mostrarToast(
-                obterMensagemErro(error),
+                obterMensagemErro(
+                    resultado.error
+                ),
                 'error'
             );
 
             return;
         }
-
-        indisponibilidades[data].add(
-            motoristaId
-        );
     } else {
-        const {
-            error
-        } = await supabaseClient
-            .from('indisponibilidades')
-            .delete()
-            .eq(
-                'data',
-                data
-            )
-            .eq(
-                'motorista_id',
-                motoristaId
-            );
+        const resultado =
+            await supabaseClient
+                .from('indisponibilidades')
+                .delete()
+                .eq(
+                    'data',
+                    data
+                )
+                .eq(
+                    'motorista_id',
+                    motorista.id
+                );
 
-        if (error) {
+        if (resultado.error) {
             mostrarToast(
-                obterMensagemErro(error),
+                obterMensagemErro(
+                    resultado.error
+                ),
                 'error'
             );
 
             return;
         }
-
-        indisponibilidades[data].delete(
-            motoristaId
-        );
     }
 
-    renderizarIndisponibilidades();
+    await carregarIndisponibilidades();
 }
 
 /* =========================================================
@@ -1505,39 +1540,28 @@ async function alterarIndisponibilidade(
 ========================================================= */
 
 async function carregarEscalas() {
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('escalas')
-        .select('*')
-        .is('deleted_at', null)
-        .order(
-            'data',
-            {
-                ascending: false
-            }
-        );
+    const resultado =
+        await supabaseClient
+            .from('escalas')
+            .select('*')
+            .is(
+                'deleted_at',
+                null
+            )
+            .order(
+                'data',
+                {
+                    ascending: false
+                }
+            );
 
-    if (error) {
-        mostrarToast(
-            `Erro ao carregar escalas: ${
-                obterMensagemErro(error)
-            }`,
-            'error'
-        );
-
+    if (resultado.error) {
+        escalas = [];
         return;
     }
 
-    escalas = {};
-
-    (data || []).forEach(
-        escala => {
-            escalas[escala.data] =
-                escala;
-        }
-    );
+    escalas =
+        resultado.data || [];
 }
 
 function obterDataEscala() {
@@ -1545,20 +1569,126 @@ function obterDataEscala() {
         .getElementById(
             'dataEscala'
         )
-        ?.value;
+        .value;
+}
+
+function obterMotoristasDisponiveis() {
+    const indisponiveis =
+        indisponibilidades.map(
+            registro =>
+                registro.motorista_id
+        );
+
+    return motoristas.filter(
+        motorista =>
+            !indisponiveis.includes(
+                motorista.id
+            )
+    );
+}
+
+function gerarPrevia() {
+    const data =
+        obterDataEscala();
+
+    if (!data) {
+        mostrarToast(
+            'Selecione a data da escala.',
+            'error'
+        );
+
+        return;
+    }
+
+    const quantidade = {
+        'Utilitário':
+            obterNumero(
+                'vagasUtilitario'
+            ),
+        'Van':
+            obterNumero(
+                'vagasVan'
+            ),
+        'Carro de Passeio':
+            obterNumero(
+                'vagasPasseio'
+            )
+    };
+
+    const disponiveis =
+        obterMotoristasDisponiveis();
+
+    const itens = [];
+
+    TIPOS_VEICULO.forEach(
+        veiculo => {
+            const candidatos =
+                disponiveis.filter(
+                    motorista =>
+                        motorista.veiculo ===
+                        veiculo
+                );
+
+            for (
+                let indice = 0;
+                indice < quantidade[veiculo];
+                indice++
+            ) {
+                const motorista =
+                    candidatos[indice];
+
+                itens.push({
+                    dsp:
+                        itens.length + 1,
+                    motoristaId:
+                        motorista?.id || null,
+                    nome:
+                        motorista?.nome ||
+                        'Vaga não preenchida',
+                    veiculo,
+                    onda: '',
+                    status:
+                        motorista
+                            ? 'ativo'
+                            : 'vazio'
+                });
+            }
+        }
+    );
+
+    escalaAtual = {
+        id: null,
+        data,
+        status: 'previa',
+        itens
+    };
+
+    renderizarEscalaAtual();
+
+    mostrarToast(
+        'Prévia gerada.',
+        'success'
+    );
 }
 
 function carregarEscalaDaData() {
     const data =
         obterDataEscala();
 
-    if (!data) return;
+    const encontrada =
+        escalas.find(
+            escala =>
+                escala.data === data
+        );
 
-    const escala =
-        escalas[data];
+    if (encontrada) {
+        escalaAtual = normalizarEscala(
+            encontrada
+        );
 
-    if (!escala) {
-        previaAtual = null;
+        renderizarEscalaAtual();
+    } else {
+        escalaAtual = null;
 
         const painel =
             document.getElementById(
@@ -1568,170 +1698,57 @@ function carregarEscalaDaData() {
         if (painel) {
             painel.hidden = true;
         }
-
-        return;
     }
-
-    const itens =
-        escala.itens ||
-        escala.dados ||
-        [];
-
-    previaAtual = {
-        ...escala,
-        itens
-    };
-
-    renderizarEscala();
 }
 
-function gerarPrevia() {
-    const data =
-        obterDataEscala();
-
-    if (!data) {
-        mostrarToast(
-            'Informe a data da escala.',
-            'error'
-        );
-
-        return;
-    }
-
-    const vagas = [
-        {
-            tipo: 'Utilitário',
-            quantidade:
-                obterNumero(
-                    'vagasUtilitario'
-                )
-        },
-        {
-            tipo: 'Van',
-            quantidade:
-                obterNumero(
-                    'vagasVan'
-                )
-        },
-        {
-            tipo: 'Carro de Passeio',
-            quantidade:
-                obterNumero(
-                    'vagasPasseio'
-                )
-        }
-    ];
-
-    const indisponiveis =
-        indisponibilidades[data] ||
-        new Set();
-
-    const disponiveis =
-        motoristas.filter(
-            motorista =>
-                !indisponiveis.has(
-                    motorista.id
-                )
-        );
-
-    const usados =
-        new Set();
-
-    const itens = [];
-
-    vagas.forEach(
-        vaga => {
-            for (
-                let i = 0;
-                i < vaga.quantidade;
-                i++
-            ) {
-                const motorista =
-                    escolherMotorista(
-                        disponiveis,
-                        vaga.tipo,
-                        usados
-                    );
-
-                itens.push({
-                    motoristaId:
-                        motorista?.id || null,
-                    nome:
-                        motorista?.nome ||
-                        'Vaga em aberto',
-                    veiculo:
-                        vaga.tipo,
-                    onda: '',
-                    status: 'ativo'
-                });
-
-                if (motorista) {
-                    usados.add(
-                        motorista.id
-                    );
-                }
-            }
-        }
-    );
-
-    previaAtual = {
-        id:
-            escalas[data]?.id || null,
-        data,
+function normalizarEscala(escala) {
+    return {
+        id: escala.id,
+        data: escala.data,
         status:
-            escalas[data]?.status ||
-            'previa',
-        itens
+            escala.status || 'previa',
+        itens:
+            Array.isArray(escala.itens)
+                ? escala.itens
+                : []
     };
-
-    renderizarEscala();
 }
 
-function escolherMotorista(
-    disponiveis,
-    tipo,
-    usados
-) {
-    return disponiveis.find(
-        motorista =>
-            !usados.has(motorista.id) &&
-            (
-                motorista.tipo_veiculo === tipo ||
-                motorista.veiculo === tipo
-            )
-    ) || null;
-}
-
-function renderizarEscala() {
+function renderizarEscalaAtual() {
     const painel =
         document.getElementById(
             'painelEscala'
         );
 
-    const corpo =
+    const tabela =
         document.getElementById(
             'tabelaEscalaBody'
         );
 
-    if (!painel || !corpo || !previaAtual) {
+    if (!painel || !tabela) {
+        return;
+    }
+
+    if (!escalaAtual) {
+        painel.hidden = true;
         return;
     }
 
     painel.hidden = false;
-    corpo.replaceChildren();
+    tabela.replaceChildren();
 
     const definitiva =
-        previaAtual.status ===
+        escalaAtual.status ===
         'definitiva';
 
-    definirTexto(
-        'dataSubtituloImagem',
-        `Data: ${
-            formatarData(
-                previaAtual.data
-            )
-        }`
-    );
+    const aviso =
+        document.getElementById(
+            'avisoPrevia'
+        );
+
+    if (aviso) {
+        aviso.hidden = definitiva;
+    }
 
     const tag =
         document.getElementById(
@@ -1740,44 +1757,27 @@ function renderizarEscala() {
 
     if (tag) {
         tag.textContent =
-            definitiva ?
-                'DEFINITIVA' :
-                'PRÉVIA';
+            definitiva
+                ? 'DEFINITIVA'
+                : 'PRÉVIA';
 
         tag.className =
-            `badge-status ${
-                definitiva ?
-                    'badge-definitiva' :
-                    'badge-previa'
-            }`;
+            definitiva
+                ? 'badge-status badge-definitiva'
+                : 'badge-status badge-previa';
     }
 
-    const aviso =
-        document.getElementById(
-            'avisoPrevia'
-        );
+    definirTexto(
+        'dataSubtituloImagem',
+        `Data: ${formatarData(escalaAtual.data)}`
+    );
 
-    if (aviso) {
-        aviso.hidden =
-            definitiva;
-    }
-
-    previaAtual.itens.forEach(
-        (item, index) => {
-            const tr =
+    escalaAtual.itens.forEach(
+        (item, indice) => {
+            const linha =
                 document.createElement(
                     'tr'
                 );
-
-            if (
-                item.status === 'cancelado' ||
-                item.status ===
-                    'cancelado_amazon'
-            ) {
-                tr.classList.add(
-                    'row-cancelada'
-                );
-            }
 
             const dsp =
                 document.createElement(
@@ -1785,9 +1785,7 @@ function renderizarEscala() {
                 );
 
             dsp.textContent =
-                item.motoristaId ?
-                    'SIM' :
-                    'VAGA';
+                item.dsp || indice + 1;
 
             const motorista =
                 document.createElement(
@@ -1795,8 +1793,7 @@ function renderizarEscala() {
                 );
 
             motorista.textContent =
-                item.nome ||
-                'Vaga em aberto';
+                item.nome || '-';
 
             const veiculo =
                 document.createElement(
@@ -1819,19 +1816,17 @@ function renderizarEscala() {
             inputOnda.className =
                 'input-onda';
 
+            inputOnda.type =
+                'text';
+
             inputOnda.value =
                 item.onda || '';
 
-            inputOnda.placeholder =
-                'Onda';
-
             inputOnda.addEventListener(
                 'input',
-                () => {
-                    previaAtual
-                        .itens[index]
-                        .onda =
-                        inputOnda.value;
+                event => {
+                    item.onda =
+                        event.target.value;
                 }
             );
 
@@ -1844,37 +1839,40 @@ function renderizarEscala() {
                     'td'
                 );
 
-            const cancelar =
-                document.createElement(
-                    'button'
+            if (item.motoristaId) {
+                const cancelar =
+                    document.createElement(
+                        'button'
+                    );
+
+                cancelar.className =
+                    'btn btn-danger btn-small';
+
+                cancelar.type =
+                    'button';
+
+                cancelar.textContent =
+                    'Cancelar';
+
+                cancelar.addEventListener(
+                    'click',
+                    () => {
+                        item.status =
+                            item.status ===
+                            'cancelado'
+                                ? 'ativo'
+                                : 'cancelado';
+
+                        renderizarEscalaAtual();
+                    }
                 );
 
-            cancelar.type =
-                'button';
+                acoes.appendChild(
+                    cancelar
+                );
+            }
 
-            cancelar.className =
-                'btn btn-danger btn-icon';
-
-            cancelar.textContent =
-                item.status === 'cancelado' ||
-                item.status ===
-                    'cancelado_amazon'
-                    ? 'Reativar'
-                    : 'Cancelar';
-
-            cancelar.addEventListener(
-                'click',
-                () =>
-                    alternarCancelamento(
-                        index
-                    )
-            );
-
-            acoes.appendChild(
-                cancelar
-            );
-
-            tr.append(
+            linha.append(
                 dsp,
                 motorista,
                 veiculo,
@@ -1882,94 +1880,55 @@ function renderizarEscala() {
                 acoes
             );
 
-            corpo.appendChild(tr);
+            tabela.appendChild(
+                linha
+            );
         }
     );
-
-    const salvar =
-        document.getElementById(
-            'btnSalvarPrevia'
-        );
 
     const confirmar =
         document.getElementById(
             'btnConfirmarDefinitiva'
         );
 
-    const imagem =
-        document.getElementById(
-            'btnBaixarImagem'
-        );
-
-    if (salvar) {
-        salvar.disabled =
-            definitiva;
-    }
-
     if (confirmar) {
         confirmar.disabled =
-            definitiva ||
-            usuarioLogado?.role ===
-                'usuario';
+            !escalaAtual.id ||
+            definitiva;
     }
-
-    if (imagem) {
-        imagem.disabled = false;
-    }
-}
-
-function alternarCancelamento(index) {
-    const item =
-        previaAtual?.itens[index];
-
-    if (!item) return;
-
-    if (
-        item.status === 'cancelado' ||
-        item.status ===
-            'cancelado_amazon'
-    ) {
-        item.status = 'ativo';
-    } else {
-        item.status = 'cancelado_amazon';
-        item.mensagem =
-            MENSAGEM_CANCELAMENTO_AMAZON;
-    }
-
-    renderizarEscala();
 }
 
 async function salvarPrevia() {
-    if (!previaAtual) {
+    if (!escalaAtual) {
         mostrarToast(
-            'Gere uma prévia primeiro.',
+            'Gere uma prévia antes de salvar.',
             'error'
         );
 
         return;
     }
 
-    const registro = {
+    const payload = {
         data:
-            previaAtual.data,
+            escalaAtual.data,
         status:
             'previa',
         itens:
-            previaAtual.itens,
+            escalaAtual.itens,
         updated_at:
             new Date().toISOString()
     };
 
     let resultado;
 
-    if (previaAtual.id) {
+    if (escalaAtual.id) {
         resultado =
             await supabaseClient
                 .from('escalas')
-                .update(registro)
+                .update(payload)
                 .eq(
                     'id',
-                    previaAtual.id
+                    escalaAtual.id
                 )
                 .select()
                 .single();
@@ -1977,11 +1936,7 @@ async function salvarPrevia() {
         resultado =
             await supabaseClient
                 .from('escalas')
-                .insert({
-                    ...registro,
-                    created_by:
-                        usuarioLogado.id
-                })
+                .insert(payload)
                 .select()
                 .single();
     }
@@ -1997,23 +1952,23 @@ async function salvarPrevia() {
         return;
     }
 
-    previaAtual =
-        resultado.data;
+    escalaAtual =
+        normalizarEscala(
+            resultado.data
+        );
 
-    escalas[previaAtual.data] =
-        previaAtual;
+    await carregarEscalas();
+    renderizarEscalaAtual();
 
     await registrarAuditoria(
         'SALVAR_ESCALA',
         'escala',
-        previaAtual.id,
-        previaAtual.data,
+        escalaAtual.id,
+        escalaAtual.data,
         {
             status: 'previa'
         }
     );
-
-    renderizarEscala();
 
     mostrarToast(
         'Prévia salva.',
@@ -2021,11 +1976,8 @@ async function salvarPrevia() {
     );
 }
 
-async function confirmarEscala() {
-    if (
-        !previaAtual ||
-        !previaAtual.id
-    ) {
+async function confirmarDefinitiva() {
+    if (!escalaAtual?.id) {
         mostrarToast(
             'Salve a prévia antes de confirmar.',
             'error'
@@ -2034,62 +1986,51 @@ async function confirmarEscala() {
         return;
     }
 
-    if (usuarioLogado?.role === 'usuario') {
+    const resultado =
+        await supabaseClient
+            .from('escalas')
+            .update({
+                status: 'definitiva',
+                itens:
+                    escalaAtual.itens,
+                updated_at:
+                    new Date().toISOString()
+            })
+            .eq(
+                'id',
+                escalaAtual.id
+            )
+            .select()
+            .single();
+
+    if (resultado.error) {
         mostrarToast(
-            'Seu perfil não pode confirmar escalas.',
+            obterMensagemErro(
+                resultado.error
+            ),
             'error'
         );
 
         return;
     }
 
-    if (!confirm(
-        'Confirmar esta escala como definitiva?'
-    )) {
-        return;
-    }
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('escalas')
-        .update({
-            status: 'definitiva',
-            updated_at:
-                new Date().toISOString()
-        })
-        .eq(
-            'id',
-            previaAtual.id
-        )
-        .select()
-        .single();
-
-    if (error) {
-        mostrarToast(
-            obterMensagemErro(error),
-            'error'
+    escalaAtual =
+        normalizarEscala(
+            resultado.data
         );
 
-        return;
-    }
-
-    previaAtual =
-        data;
-
-    escalas[data.data] =
-        data;
+    await carregarEscalas();
+    renderizarEscalaAtual();
 
     await registrarAuditoria(
         'CONFIRMAR_ESCALA',
         'escala',
-        data.id,
-        data.data,
-        {}
+        escalaAtual.id,
+        escalaAtual.data,
+        {
+            status: 'definitiva'
+        }
     );
-
-    renderizarEscala();
 
     mostrarToast(
         'Escala confirmada.',
@@ -2097,69 +2038,46 @@ async function confirmarEscala() {
     );
 }
 
-async function arquivarEscalaAtual() {
-    if (usuarioLogado?.role !== 'admin') {
+async function arquivarEscala() {
+    if (!escalaAtual?.id) {
         mostrarToast(
-            'Somente administradores podem arquivar escalas.',
+            'Não existe escala salva nesta data.',
             'error'
         );
 
         return;
     }
 
-    if (
-        !previaAtual?.id
-    ) {
-        mostrarToast(
-            'Nenhuma escala salva selecionada.',
-            'error'
+    const confirmar =
+        window.confirm(
+            'Arquivar a escala desta data?'
         );
 
+    if (!confirmar) {
         return;
     }
 
-    if (!confirm(
-        'Arquivar esta escala?'
-    )) {
-        return;
-    }
+    const resultado =
+        await supabaseClient
+            .from('escalas')
+            .update({
+                deleted_at:
+                    new Date().toISOString(),
+                deleted_by:
+                    usuarioLogado.id,
+                deleted_reason:
+                    'Arquivamento pelo sistema'
+            })
+            .eq(
+                'id',
+                escalaAtual.id
+            );
 
-    const motivo =
-        prompt(
-            'Motivo do arquivamento:'
-        );
-
-    if (!motivo?.trim()) {
+    if (resultado.error) {
         mostrarToast(
-            'Informe um motivo.',
-            'error'
-        );
-
-        return;
-    }
-
-    const {
-        error
-    } = await supabaseClient
-        .from('escalas')
-        .update({
-            deleted_at:
-                new Date().toISOString(),
-            deleted_by:
-                usuarioLogado.id,
-            deleted_reason:
-                motivo.trim(),
-            updated_at:
-                new Date().toISOString()
-        })
-        .eq(
-            'id',
-            previaAtual.id
-        );
-
-    if (error) {
-        mostrarToast(
-            obterMensagemErro(error),
+            obterMensagemErro(
+                resultado.error
+            ),
             'error'
         );
 
@@ -2169,22 +2087,15 @@ async function arquivarEscalaAtual() {
     await registrarAuditoria(
         'ARQUIVAR_ESCALA',
         'escala',
-        previaAtual.id,
-        previaAtual.data,
-        {
-            motivo: motivo.trim()
-        }
+        escalaAtual.id,
+        escalaAtual.data,
+        {}
     );
 
-    delete escalas[previaAtual.data];
+    escalaAtual = null;
 
-    previaAtual = null;
-
-    document
-        .getElementById(
-            'painelEscala'
-        )
-        .hidden = true;
+    await carregarEscalas();
+    carregarEscalaDaData();
 
     mostrarToast(
         'Escala arquivada.',
@@ -2196,13 +2107,63 @@ async function arquivarEscalaAtual() {
    EXPORTAÇÕES
 ========================================================= */
 
-function exportarEscalaExcel() {
-    if (
-        !previaAtual ||
-        !window.XLSX
-    ) {
+async function baixarImagem() {
+    mostrarToast(
+        'Para baixar imagem, adicione a biblioteca html2canvas ao index.html.',
+        'warning'
+    );
+}
+
+function compartilharWhatsApp() {
+    if (!escalaAtual) {
         mostrarToast(
-            'Não há escala para exportar.',
+            'Não existe escala para compartilhar.',
+            'error'
+        );
+
+        return;
+    }
+
+    let texto =
+        `ESCALA BETAXLOG\n` +
+        `Data: ${formatarData(
+            escalaAtual.data
+        )}\n\n`;
+
+    escalaAtual.itens.forEach(
+        item => {
+            texto +=
+                `${item.nome} - ` +
+                `${item.veiculo} - ` +
+                `Onda: ${item.onda || '-'}\n`;
+        }
+    );
+
+    const url =
+        `https://wa.me/?text=${
+            encodeURIComponent(texto)
+        }`;
+
+    window.open(
+        url,
+        '_blank',
+        'noopener,noreferrer'
+    );
+}
+
+function exportarEscalaExcel() {
+    if (!window.XLSX) {
+        mostrarToast(
+            'Biblioteca Excel não carregada.',
+            'error'
+        );
+
+        return;
+    }
+
+    if (!escalaAtual) {
+        mostrarToast(
+            'Não existe escala para exportar.',
             'error'
         );
 
@@ -2210,20 +2171,13 @@ function exportarEscalaExcel() {
     }
 
     const linhas =
-        previaAtual.itens.map(
+        escalaAtual.itens.map(
             item => ({
-                DSP:
-                    item.motoristaId ?
-                        'SIM' :
-                        'VAGA',
-                Motorista:
-                    item.nome,
-                Veículo:
-                    item.veiculo,
-                Onda:
-                    item.onda || '',
-                Status:
-                    item.status
+                DSP: item.dsp,
+                Motorista: item.nome,
+                Veículo: item.veiculo,
+                Onda: item.onda || '',
+                Status: item.status
             })
         );
 
@@ -2243,7 +2197,7 @@ function exportarEscalaExcel() {
 
     XLSX.writeFile(
         livro,
-        `escala_${previaAtual.data}.xlsx`
+        `escala_${escalaAtual.data}.xlsx`
     );
 }
 
@@ -2260,18 +2214,15 @@ function exportarMotoristas() {
     const linhas =
         motoristas.map(
             motorista => ({
-                Nome:
-                    motorista.nome,
+                Nome: motorista.nome,
                 Telefone:
                     motorista.telefone || '',
                 Veículo:
-                    motorista.tipo_veiculo ||
-                    motorista.veiculo ||
-                    '',
+                    motorista.veiculo || '',
                 Prioridade:
-                    motorista.prioridade ?
-                        'Sim' :
-                        'Não'
+                    motorista.prioridade
+                        ? 'SIM'
+                        : 'NÃO'
             })
         );
 
@@ -2297,243 +2248,172 @@ function exportarMotoristas() {
 
 async function importarExcel(event) {
     const arquivo =
-        event.target.files?.[0];
+        event.target.files[0];
 
-    if (!arquivo) return;
-
-    if (!window.XLSX) {
-        mostrarToast(
-            'Biblioteca Excel não carregada.',
-            'error'
-        );
-
+    if (!arquivo || !window.XLSX) {
         return;
     }
 
-    const dados =
-        await arquivo.arrayBuffer();
+    try {
+        const dados =
+            await arquivo.arrayBuffer();
 
-    const livro =
-        XLSX.read(
-            dados,
-            {
-                type: 'array'
-            }
-        );
+        const livro =
+            XLSX.read(
+                dados,
+                {
+                    type: 'array'
+                }
+            );
 
-    const primeiraAba =
-        livro.Sheets[
-            livro.SheetNames[0]
-        ];
+        const primeiraAba =
+            livro.Sheets[
+                livro.SheetNames[0]
+            ];
 
-    const linhas =
-        XLSX.utils.sheet_to_json(
-            primeiraAba
-        );
+        const linhas =
+            XLSX.utils.sheet_to_json(
+                primeiraAba
+            );
 
-    let inseridos = 0;
+        let cadastrados = 0;
 
-    for (const linha of linhas) {
-        const nome =
-            String(
+        for (const linha of linhas) {
+            const nome =
                 linha.Nome ||
                 linha.nome ||
                 linha.Motorista ||
-                ''
-            ).trim();
+                linha.motorista;
 
-        const telefone =
-            String(
-                linha.Telefone ||
-                linha.telefone ||
-                ''
-            ).trim();
+            if (!nome) {
+                continue;
+            }
 
-        const tipo =
-            String(
-                linha.Veículo ||
-                linha.Veiculo ||
-                linha.tipo_veiculo ||
-                'Utilitário'
-            ).trim();
+            const resultado =
+                await supabaseClient
+                    .from('motoristas')
+                    .insert({
+                        nome: String(nome),
+                        telefone:
+                            String(
+                                linha.Telefone ||
+                                linha.telefone ||
+                                ''
+                            ),
+                        veiculo:
+                            linha.Veículo ||
+                            linha.Veiculo ||
+                            'Utilitário',
+                        prioridade:
+                            String(
+                                linha.Prioridade ||
+                                ''
+                            ).toUpperCase() ===
+                            'SIM',
+                        ativo: true
+                    });
 
-        if (!nome) continue;
-
-        const {
-            data,
-            error
-        } = await supabaseClient
-            .from('motoristas')
-            .insert({
-                nome,
-                telefone,
-                tipo_veiculo:
-                    TIPOS_VEICULO.includes(tipo)
-                        ? tipo
-                        : 'Utilitário',
-                prioridade: false,
-                ativo: true,
-                created_by:
-                    usuarioLogado.id
-            })
-            .select()
-            .single();
-
-        if (!error && data) {
-            inseridos++;
-
-            await registrarAuditoria(
-                'IMPORTAR_MOTORISTA',
-                'motorista',
-                data.id,
-                data.nome,
-                {}
-            );
+            if (!resultado.error) {
+                cadastrados++;
+            }
         }
+
+        await carregarMotoristas();
+
+        renderizarMotoristas();
+        renderizarPrioridades();
+
+        mostrarToast(
+            `${cadastrados} motorista(s) importado(s).`,
+            'success'
+        );
+    } catch (error) {
+        mostrarToast(
+            obterMensagemErro(error),
+            'error'
+        );
     }
 
     event.target.value = '';
-
-    await carregarMotoristas();
-
-    renderizarMotoristas();
-    renderizarPrioridades();
-
-    mostrarToast(
-        `${inseridos} motorista(s) importado(s).`,
-        'success'
-    );
-}
-
-async function baixarImagemEscala() {
-    const area =
-        document.getElementById(
-            'areaCapturaImagem'
-        );
-
-    if (
-        !area ||
-        !window.html2canvas
-    ) {
-        mostrarToast(
-            'Não foi possível gerar a imagem.',
-            'error'
-        );
-
-        return;
-    }
-
-    const canvas =
-        await html2canvas(area);
-
-    const link =
-        document.createElement(
-            'a'
-        );
-
-    link.download =
-        `escala_${previaAtual?.data || obterDataISO()}.png`;
-
-    link.href =
-        canvas.toDataURL('image/png');
-
-    link.click();
-}
-
-function compartilharWhatsApp() {
-    if (!previaAtual) {
-        mostrarToast(
-            'Gere uma escala primeiro.',
-            'error'
-        );
-
-        return;
-    }
-
-    const linhas =
-        previaAtual.itens.map(
-            item =>
-                `• ${item.nome} — ${
-                    item.veiculo
-                } — Onda ${
-                    item.onda || '-'
-                }`
-        );
-
-    const texto =
-        `*BETAXLOG — ESCALA*%0A` +
-        `Data: ${
-            formatarData(
-                previaAtual.data
-            )
-        }%0A%0A` +
-        linhas.join('%0A');
-
-    window.open(
-        `https://wa.me/?text=${texto}`,
-        '_blank',
-        'noopener'
-    );
 }
 
 /* =========================================================
    RELATÓRIOS
 ========================================================= */
 
+function aplicarAtalhoPeriodo() {
+    const valor =
+        document
+            .getElementById(
+                'filtroAtalhoPeriodo'
+            )
+            .value;
+
+    if (!valor) {
+        return;
+    }
+
+    const fim =
+        new Date();
+
+    const inicio =
+        new Date();
+
+    if (valor === 'mes_atual') {
+        inicio.setDate(1);
+    }
+
+    if (valor === 'ultimos_7') {
+        inicio.setDate(
+            inicio.getDate() - 7
+        );
+    }
+
+    if (valor === 'ultimos_6_meses') {
+        inicio.setMonth(
+            inicio.getMonth() - 6
+        );
+    }
+
+    if (valor === 'este_ano') {
+        inicio.setMonth(0, 1);
+    }
+
+    document
+        .getElementById(
+            'relatorioDataInicio'
+        )
+        .value =
+        obterDataISO(inicio);
+
+    document
+        .getElementById(
+            'relatorioDataFim'
+        )
+        .value =
+        obterDataISO(fim);
+}
+
 function gerarRelatorio() {
-    const inicioTexto =
+    const inicio =
         document
             .getElementById(
                 'relatorioDataInicio'
             )
-            ?.value;
+            .value;
 
-    const fimTexto =
+    const fim =
         document
             .getElementById(
                 'relatorioDataFim'
             )
-            ?.value;
+            .value;
 
-    if (!inicioTexto || !fimTexto) {
-        mostrarToast(
-            'Informe o período do relatório.',
-            'error'
-        );
-
-        return;
-    }
-
-    const inicio =
-        converterData(
-            inicioTexto
-        );
-
-    const fim =
-        converterData(
-            fimTexto
-        );
-
-    fim.setHours(
-        23,
-        59,
-        59,
-        999
-    );
-
-    const registros =
-        Object.values(
-            escalas
-        ).filter(
-            escala => {
-                const data =
-                    converterData(
-                        escala.data
-                    );
-
-                return data >= inicio &&
-                    data <= fim;
-            }
+    const filtradas =
+        escalas.filter(
+            escala =>
+                escala.data >= inicio &&
+                escala.data <= fim
         );
 
     let total = 0;
@@ -2541,13 +2421,20 @@ function gerarRelatorio() {
     let canceladas = 0;
 
     const ranking = {};
+    const veiculos = {
+        'Utilitário': 0,
+        'Van': 0,
+        'Carro de Passeio': 0
+    };
 
-    registros.forEach(
+    filtradas.forEach(
         escala => {
             const itens =
-                escala.itens ||
-                escala.dados ||
-                [];
+                Array.isArray(
+                    escala.itens
+                )
+                    ? escala.itens
+                    : [];
 
             itens.forEach(
                 item => {
@@ -2559,14 +2446,23 @@ function gerarRelatorio() {
 
                     const cancelado =
                         item.status ===
-                            'cancelado' ||
-                        item.status ===
-                            'cancelado_amazon';
+                        'cancelado';
 
                     if (cancelado) {
                         canceladas++;
                     } else {
                         ativas++;
+                    }
+
+                    if (
+                        veiculos[
+                            item.veiculo
+                        ] !== undefined &&
+                        !cancelado
+                    ) {
+                        veiculos[
+                            item.veiculo
+                        ]++;
                     }
 
                     if (
@@ -2577,10 +2473,8 @@ function gerarRelatorio() {
                         ranking[
                             item.motoristaId
                         ] = {
-                            nome:
-                                item.nome,
-                            veiculo:
-                                item.veiculo,
+                            nome: item.nome,
+                            veiculo: item.veiculo,
                             escalas: 0,
                             cancelamentos: 0
                         };
@@ -2617,125 +2511,85 @@ function gerarRelatorio() {
 
     definirTexto(
         'kpiTaxaSucesso',
-        `${total ? (
-            ativas / total * 100
-        ).toFixed(1) : 0}%`
+        total
+            ? `${(
+                ativas / total * 100
+            ).toFixed(1)}%`
+            : '0%'
     );
 
-    const corpo =
+    const tabela =
         document.getElementById(
             'tabelaRankingBody'
         );
 
-    if (corpo) {
-        corpo.replaceChildren();
+    tabela.replaceChildren();
 
-        Object.values(ranking)
-            .sort(
-                (a, b) =>
-                    b.escalas -
-                    a.escalas
-            )
-            .forEach(
-                item => {
-                    const tr =
-                        document.createElement(
-                            'tr'
-                        );
+    Object.values(ranking)
+        .sort(
+            (a, b) =>
+                b.escalas - a.escalas
+        )
+        .forEach(
+            item => {
+                const linha =
+                    document.createElement(
+                        'tr'
+                    );
 
-                    const presenca =
-                        item.escalas
-                            ? (
-                                (
-                                    item.escalas -
-                                    item.cancelamentos
-                                ) /
-                                item.escalas *
-                                100
-                            ).toFixed(1)
-                            : '0.0';
+                const presenca =
+                    item.escalas
+                        ? (
+                            (
+                                item.escalas -
+                                item.cancelamentos
+                            ) /
+                            item.escalas *
+                            100
+                        ).toFixed(1)
+                        : '0.0';
 
-                    [
-                        item.nome,
-                        item.veiculo,
-                        item.escalas,
-                        item.cancelamentos,
-                        `${presenca}%`
-                    ].forEach(
-                        valor => {
-                            const td =
-                                document.createElement(
-                                    'td'
-                                );
-
-                            td.textContent =
-                                valor;
-
-                            tr.appendChild(
-                                td
+                [
+                    item.nome,
+                    item.veiculo,
+                    item.escalas,
+                    item.cancelamentos,
+                    `${presenca}%`
+                ].forEach(
+                    valor => {
+                        const celula =
+                            document.createElement(
+                                'td'
                             );
-                        }
-                    );
 
-                    corpo.appendChild(
-                        tr
-                    );
-                }
-            );
-    }
+                        celula.textContent =
+                            valor;
+
+                        linha.appendChild(
+                            celula
+                        );
+                    }
+                );
+
+                tabela.appendChild(
+                    linha
+                );
+            }
+        );
 
     atualizarGraficos(
-        registros
+        filtradas,
+        veiculos
     );
 }
 
-function atualizarGraficos(registros) {
-    if (!window.Chart) return;
-
-    const evolucao = {};
-    const veiculos = {
-        'Utilitário': 0,
-        'Van': 0,
-        'Carro de Passeio': 0
-    };
-
-    registros.forEach(
-        escala => {
-            const itens =
-                escala.itens ||
-                escala.dados ||
-                [];
-
-            evolucao[escala.data] =
-                itens.filter(
-                    item =>
-                        item.motoristaId &&
-                        item.status !==
-                            'cancelado' &&
-                        item.status !==
-                            'cancelado_amazon'
-                ).length;
-
-            itens.forEach(
-                item => {
-                    if (
-                        item.motoristaId &&
-                        item.status !==
-                            'cancelado' &&
-                        item.status !==
-                            'cancelado_amazon' &&
-                        veiculos[
-                            item.veiculo
-                        ] !== undefined
-                    ) {
-                        veiculos[
-                            item.veiculo
-                        ]++;
-                    }
-                }
-            );
-        }
-    );
+function atualizarGraficos(
+    escalasFiltradas,
+    veiculos
+) {
+    if (!window.Chart) {
+        return;
+    }
 
     const canvasEvolucao =
         document.getElementById(
@@ -2743,25 +2597,37 @@ function atualizarGraficos(registros) {
         );
 
     if (canvasEvolucao) {
-        chartEvolucao?.destroy();
+        const valores =
+            escalasFiltradas.map(
+                escala =>
+                    Array.isArray(
+                        escala.itens
+                    )
+                        ? escala.itens.length
+                        : 0
+            );
 
-        chartEvolucao =
+        if (chartEvolucaoInstancia) {
+            chartEvolucaoInstancia.destroy();
+        }
+
+        chartEvolucaoInstancia =
             new Chart(
                 canvasEvolucao,
                 {
                     type: 'line',
                     data: {
                         labels:
-                            Object.keys(
-                                evolucao
+                            escalasFiltradas.map(
+                                escala =>
+                                    formatarData(
+                                        escala.data
+                                    )
                             ),
                         datasets: [{
                             label:
-                                'Rotas ativas',
-                            data:
-                                Object.values(
-                                    evolucao
-                                ),
+                                'Itens da escala',
+                            data: valores,
                             borderColor:
                                 '#1e3a8a',
                             backgroundColor:
@@ -2783,9 +2649,11 @@ function atualizarGraficos(registros) {
         );
 
     if (canvasVeiculos) {
-        chartVeiculos?.destroy();
+        if (chartVeiculosInstancia) {
+            chartVeiculosInstancia.destroy();
+        }
 
-        chartVeiculos =
+        chartVeiculosInstancia =
             new Chart(
                 canvasVeiculos,
                 {
@@ -2815,101 +2683,18 @@ function atualizarGraficos(registros) {
     }
 }
 
-function aplicarAtalhoPeriodo() {
-    const atalho =
-        document
-            .getElementById(
-                'filtroAtalhoPeriodo'
-            )
-            ?.value;
-
-    const hoje =
-        new Date();
-
-    const inicio =
-        new Date();
-
-    if (atalho === 'mes_atual') {
-        inicio.setDate(1);
-    }
-
-    if (atalho === 'ultimos_7') {
-        inicio.setDate(
-            hoje.getDate() - 7
-        );
-    }
-
-    if (atalho === 'ultimos_6_meses') {
-        inicio.setMonth(
-            hoje.getMonth() - 6
-        );
-    }
-
-    if (atalho === 'este_ano') {
-        inicio.setMonth(0, 1);
-    }
-
-    if (!atalho) return;
-
-    document
-        .getElementById(
-            'relatorioDataInicio'
-        )
-        .value =
-        obterDataISO(inicio);
-
-    document
-        .getElementById(
-            'relatorioDataFim'
-        )
-        .value =
-        obterDataISO(hoje);
-}
-
-function exportarRelatorioPDF() {
-    if (!window.jspdf) {
-        mostrarToast(
-            'Biblioteca PDF não carregada.',
-            'error'
-        );
-
-        return;
-    }
-
-    const {
-        jsPDF
-    } = window.jspdf;
-
-    const pdf =
-        new jsPDF();
-
-    pdf.text(
-        'Relatório BETAXLOG',
-        14,
-        20
-    );
-
-    if (
-        typeof pdf.autoTable ===
-        'function'
-    ) {
-        pdf.autoTable({
-            html:
-                '#tabelaRankingBody',
-            startY: 30
-        });
-    }
-
-    pdf.save(
-        `relatorio_${obterDataISO()}.pdf`
+function exportarPDF() {
+    mostrarToast(
+        'Para gerar PDF, adicione jsPDF ao index.html.',
+        'warning'
     );
 }
 
 /* =========================================================
-   ADMINISTRAÇÃO
+   ADMINISTRAÇÃO E AUDITORIA
 ========================================================= */
 
-function abrirPainelAdmin() {
+async function abrirPainelAdmin() {
     if (usuarioLogado?.role !== 'admin') {
         mostrarToast(
             'Acesso restrito ao administrador.',
@@ -2919,24 +2704,39 @@ function abrirPainelAdmin() {
         return;
     }
 
-    let modal =
-        document.getElementById(
+    document
+        .getElementById(
             'modalAdmin'
+        )
+        .hidden = false;
+
+    const lista =
+        document.getElementById(
+            'listaUsuariosCadastrados'
         );
 
-    if (!modal) {
-        modal =
-            criarModalAdmin();
+    lista.replaceChildren();
 
-        document.body.appendChild(
-            modal
+    const perfil =
+        document.createElement(
+            'div'
         );
-    }
 
-    modal.hidden = false;
+    perfil.className =
+        'admin-item';
 
-    carregarUsuariosAdmin();
-    carregarAuditoria();
+    perfil.textContent =
+        `${usuarioLogado.nome} · ${
+            usuarioLogado.email
+        } · Perfil: ${
+            usuarioLogado.role
+        }`;
+
+    lista.appendChild(
+        perfil
+    );
+
+    await carregarAuditoria();
 }
 
 function fecharPainelAdmin() {
@@ -2944,432 +2744,60 @@ function fecharPainelAdmin() {
         .getElementById(
             'modalAdmin'
         )
-        ?.setAttribute(
-            'hidden',
-            ''
-        );
-}
-
-function criarModalAdmin() {
-    const modal =
-        document.createElement(
-            'div'
-        );
-
-    modal.id =
-        'modalAdmin';
-
-    modal.className =
-        'modal-overlay';
-
-    modal.hidden = true;
-
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="card-title-flex">
-                <h2>Painel administrativo</h2>
-
-                <button
-                    id="btnFecharAdmin"
-                    class="btn btn-danger"
-                    type="button">
-                    Fechar
-                </button>
-            </div>
-
-            <div class="toolbar">
-                <button
-                    id="btnNovoUsuarioAdmin"
-                    class="btn btn-primary"
-                    type="button">
-                    Novo usuário
-                </button>
-            </div>
-
-            <h3>Usuários</h3>
-
-            <div
-                id="listaUsuariosAdmin"
-                class="admin-list">
-            </div>
-
-            <h3>Auditoria</h3>
-
-            <div class="table-wrapper">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Usuário</th>
-                            <th>Ação</th>
-                            <th>Registro</th>
-                        </tr>
-                    </thead>
-
-                    <tbody
-                        id="tabelaAuditoriaBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-
-    modal
-        .querySelector(
-            '#btnFecharAdmin'
-        )
-        .addEventListener(
-            'click',
-            fecharPainelAdmin
-        );
-
-    modal
-        .querySelector(
-            '#btnNovoUsuarioAdmin'
-        )
-        .addEventListener(
-            'click',
-            abrirCadastroUsuario
-        );
-
-    return modal;
-}
-
-async function carregarUsuariosAdmin() {
-    const lista =
-        document.getElementById(
-            'listaUsuariosAdmin'
-        ) ||
-        document.getElementById(
-            'listaUsuariosCadastrados'
-        );
-
-    if (!lista) return;
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('profiles')
-        .select(
-            'id, nome, email, role, ativo'
-        )
-        .order(
-            'nome'
-        );
-
-    lista.replaceChildren();
-
-    if (error) {
-        lista.textContent =
-            obterMensagemErro(error);
-
-        return;
-    }
-
-    (data || []).forEach(
-        usuario => {
-            const item =
-                document.createElement(
-                    'div'
-                );
-
-            item.className =
-                'checkbox-item';
-
-            const texto =
-                document.createElement(
-                    'span'
-                );
-
-            texto.textContent =
-                `${usuario.nome || '-'} · ${
-                    usuario.email || '-'
-                }`;
-
-            const controles =
-                document.createElement(
-                    'div'
-                );
-
-            const role =
-                document.createElement(
-                    'select'
-                );
-
-            role.innerHTML = `
-                <option value="admin">
-                    Administrador
-                </option>
-                <option value="operador">
-                    Operador
-                </option>
-                <option value="usuario">
-                    Usuário
-                </option>
-            `;
-
-            role.value =
-                usuario.role || 'usuario';
-
-            const status =
-                document.createElement(
-                    'select'
-                );
-
-            status.innerHTML = `
-                <option value="true">
-                    Ativo
-                </option>
-                <option value="false">
-                    Inativo
-                </option>
-            `;
-
-            status.value =
-                String(
-                    usuario.ativo !== false
-                );
-
-            const salvar =
-                document.createElement(
-                    'button'
-                );
-
-            salvar.className =
-                'btn btn-primary btn-icon';
-
-            salvar.type =
-                'button';
-
-            salvar.textContent =
-                'Salvar';
-
-            salvar.addEventListener(
-                'click',
-                () =>
-                    atualizarUsuario(
-                        usuario,
-                        role.value,
-                        status.value ===
-                            'true'
-                    )
-            );
-
-            controles.append(
-                role,
-                status,
-                salvar
-            );
-
-            item.append(
-                texto,
-                controles
-            );
-
-            lista.appendChild(
-                item
-            );
-        }
-    );
-}
-
-async function atualizarUsuario(
-    usuario,
-    role,
-    ativo
-) {
-    if (
-        usuario.id ===
-            usuarioLogado.id &&
-        (
-            role !== 'admin' ||
-            !ativo
-        )
-    ) {
-        mostrarToast(
-            'Você não pode remover seu próprio acesso de administrador.',
-            'error'
-        );
-
-        return;
-    }
-
-    if (
-        usuario.role === 'admin' &&
-        (
-            role !== 'admin' ||
-            !ativo
-        )
-    ) {
-        const {
-            count
-        } = await supabaseClient
-            .from('profiles')
-            .select(
-                'id',
-                {
-                    count: 'exact',
-                    head: true
-                }
-            )
-            .eq(
-                'role',
-                'admin'
-            )
-            .eq(
-                'ativo',
-                true
-            );
-
-        if ((count || 0) <= 1) {
-            mostrarToast(
-                'É necessário manter um administrador ativo.',
-                'error'
-            );
-
-            return;
-        }
-    }
-
-    const {
-        error
-    } = await supabaseClient
-        .from('profiles')
-        .update({
-            role,
-            ativo,
-            updated_at:
-                new Date().toISOString()
-        })
-        .eq(
-            'id',
-            usuario.id
-        );
-
-    if (error) {
-        mostrarToast(
-            obterMensagemErro(error),
-            'error'
-        );
-
-        return;
-    }
-
-    await registrarAuditoria(
-        'ATUALIZAR_USUARIO',
-        'usuario',
-        usuario.id,
-        usuario.nome,
-        {
-            role,
-            ativo
-        }
-    );
-
-    await carregarUsuariosAdmin();
-
-    mostrarToast(
-        'Usuário atualizado.',
-        'success'
-    );
-}
-
-function abrirCadastroUsuario() {
-    mostrarToast(
-        'Crie o usuário em Supabase Authentication e depois cadastre o perfil em profiles.',
-        'info'
-    );
-}
-
-/* =========================================================
-   AUDITORIA
-========================================================= */
-
-async function registrarAuditoria(
-    action,
-    entityType,
-    entityId,
-    entityLabel,
-    details = {}
-) {
-    if (!usuarioLogado) return;
-
-    const {
-        error
-    } = await supabaseClient
-        .from('audit_logs')
-        .insert({
-            user_id:
-                usuarioLogado.id,
-            user_name:
-                usuarioLogado.nome,
-            action,
-            entity_type:
-                entityType,
-            entity_id:
-                entityId,
-            entity_label:
-                entityLabel,
-            details
-        });
-
-    if (error) {
-        console.error(
-            'Erro ao registrar auditoria:',
-            error
-        );
-    }
+        .hidden = true;
 }
 
 async function carregarAuditoria() {
-    const corpo =
+    const tabela =
         document.getElementById(
             'tabelaAuditoriaBody'
         );
 
-    if (!corpo) return;
+    tabela.replaceChildren();
 
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from('audit_logs')
-        .select('*')
-        .order(
-            'created_at',
-            {
-                ascending: false
-            }
-        )
-        .limit(300);
+    const resultado =
+        await supabaseClient
+            .from('audit_logs')
+            .select('*')
+            .order(
+                'created_at',
+                {
+                    ascending: false
+                }
+            )
+            .limit(100);
 
-    corpo.replaceChildren();
-
-    if (error) {
-        const tr =
+    if (resultado.error) {
+        const linha =
             document.createElement(
                 'tr'
             );
 
-        const td =
+        const celula =
             document.createElement(
                 'td'
             );
 
-        td.colSpan = 4;
-        td.textContent =
-            obterMensagemErro(error);
+        celula.colSpan = 4;
+        celula.textContent =
+            obterMensagemErro(
+                resultado.error
+            );
 
-        tr.appendChild(td);
-        corpo.appendChild(tr);
+        linha.appendChild(
+            celula
+        );
+
+        tabela.appendChild(
+            linha
+        );
 
         return;
     }
 
-    (data || []).forEach(
+    (resultado.data || []).forEach(
         registro => {
-            const tr =
+            const linha =
                 document.createElement(
                     'tr'
                 );
@@ -3388,69 +2816,99 @@ async function carregarAuditoria() {
                     '-'
             ].forEach(
                 valor => {
-                    const td =
+                    const celula =
                         document.createElement(
                             'td'
                         );
 
-                    td.textContent =
+                    celula.textContent =
                         valor;
 
-                    tr.appendChild(td);
+                    linha.appendChild(
+                        celula
+                    );
                 }
             );
 
-            corpo.appendChild(tr);
+            tabela.appendChild(
+                linha
+            );
         }
     );
 }
 
+async function registrarAuditoria(
+    action,
+    entityType,
+    entityId,
+    entityLabel,
+    details
+) {
+    if (!usuarioLogado) {
+        return;
+    }
+
+    const resultado =
+        await supabaseClient
+            .from('audit_logs')
+            .insert({
+                user_id:
+                    usuarioLogado.id,
+                user_name:
+                    usuarioLogado.nome,
+                action,
+                entity_type:
+                    entityType,
+                entity_id:
+                    entityId,
+                entity_label:
+                    entityLabel,
+                details:
+                    details || {}
+            });
+
+    if (resultado.error) {
+        console.error(
+            'Erro de auditoria:',
+            resultado.error
+        );
+    }
+}
+
 /* =========================================================
-   DATAS E FUNÇÕES AUXILIARES
+   FUNÇÕES AUXILIARES
 ========================================================= */
 
 function configurarDatas() {
     const hoje =
         obterDataISO();
 
-    const dataEscala =
-        document.getElementById(
-            'dataEscala'
+    definirValor(
+        'dataEscala',
+        hoje
+    );
+
+    definirValor(
+        'relatorioDataFim',
+        hoje
+    );
+
+    const primeiroDia =
+        new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            1
         );
 
-    if (dataEscala) {
-        dataEscala.value =
-            hoje;
-    }
-
-    const fim =
-        document.getElementById(
-            'relatorioDataFim'
-        );
-
-    if (fim) {
-        fim.value =
-            hoje;
-    }
-
-    const inicio =
-        document.getElementById(
-            'relatorioDataInicio'
-        );
-
-    if (inicio) {
-        inicio.value =
-            obterDataISO(
-                new Date(
-                    new Date().getFullYear(),
-                    new Date().getMonth(),
-                    1
-                )
-            );
-    }
+    definirValor(
+        'relatorioDataInicio',
+        obterDataISO(
+            primeiroDia
+        )
+    );
 }
 
-function atualizarInformacoesUsuario() {
+function atualizarInformacoes() {
     definirTexto(
         'usuarioAtual',
         `${usuarioLogado.nome} · ${
@@ -3466,6 +2924,8 @@ function atualizarInformacoesUsuario() {
             )
         }`
     );
+
+    aplicarPermissoes();
 }
 
 function obterNumero(id) {
@@ -3476,17 +2936,24 @@ function obterNumero(id) {
     );
 }
 
-function converterData(valor) {
-    if (!valor) return null;
+function definirTexto(id, valor) {
+    const elemento =
+        document.getElementById(id);
 
-    const partes =
-        valor.split('-').map(Number);
+    if (elemento) {
+        elemento.textContent =
+            String(valor);
+    }
+}
 
-    return new Date(
-        partes[0],
-        partes[1] - 1,
-        partes[2]
-    );
+function definirValor(id, valor) {
+    const elemento =
+        document.getElementById(id);
+
+    if (elemento) {
+        elemento.value =
+            valor;
+    }
 }
 
 function obterDataISO(
@@ -3509,31 +2976,40 @@ function obterDataISO(
 }
 
 function formatarData(valor) {
-    if (!valor) return '-';
+    if (!valor) {
+        return '-';
+    }
 
     const partes =
         String(valor).split('-');
 
-    return partes.length === 3
-        ? partes.reverse().join('/')
-        : valor;
+    if (partes.length !== 3) {
+        return valor;
+    }
+
+    return partes.reverse().join('/');
 }
 
 function formatarDataHora(valor) {
-    if (!valor) return '-';
+    if (!valor) {
+        return '-';
+    }
 
     return new Date(valor)
         .toLocaleString('pt-BR');
 }
 
-function definirTexto(id, valor) {
-    const elemento =
-        document.getElementById(id);
+function converterData(valor) {
+    const partes =
+        String(valor)
+            .split('-')
+            .map(Number);
 
-    if (elemento) {
-        elemento.textContent =
-            valor;
-    }
+    return new Date(
+        partes[0],
+        partes[1] - 1,
+        partes[2]
+    );
 }
 
 function mostrarToast(
@@ -3546,7 +3022,7 @@ function mostrarToast(
         );
 
     if (!container) {
-        alert(mensagem);
+        window.alert(mensagem);
         return;
     }
 
@@ -3565,7 +3041,7 @@ function mostrarToast(
         toast
     );
 
-    setTimeout(
+    window.setTimeout(
         () => toast.remove(),
         5000
     );
