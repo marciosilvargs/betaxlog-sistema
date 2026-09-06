@@ -36,7 +36,7 @@ const SUPABASE_URL =
     'https://bnpfdkwjdtnpfmnjoftf.supabase.co';
 
 const SUPABASE_ANON_KEY =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJucGZka3dqZHRucGZtbmpvZnRmIiwiaWF0IjoxNzg4NTczMTc3LCJleHAiOjIxMDQxNDkxNzN9.5ksgMBijxazAtCtse-Lb5MqmaxcL22dVqKBMrnjSYMA';
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJucGZka3dqZHRucGZtbmpvZnRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzMxNzcsImV4cCI6MjEwNDE0OTE3N30.5ksgMBijxazAtCtse-Lb5MqmaxcL22dVqKBMrnjSYMA';
 
 const supabaseClient =
     window.supabase.createClient(
