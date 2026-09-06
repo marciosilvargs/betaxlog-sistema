@@ -2,43 +2,93 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
     <title>BETAXLOG — Gestão Operacional</title>
 
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- Supabase -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
 
-    <script src="script.js" defer></script>
+    <!-- Importação/exportação Excel -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
+    </script>
+
+    <!-- Exportação de imagem -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+
+    <!-- Gráficos -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js">
+    </script>
+
+    <!-- PDF -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js">
+    </script>
+
+    <!-- JavaScript do sistema -->
+    <script
+        src="script.js"
+        defer>
+    </script>
 </head>
 
 <body>
-    <div id="appLoader" class="app-loader">
+    <!-- Carregamento inicial -->
+    <div
+        id="appLoader"
+        class="app-loader">
+
         <div class="loader-spinner"></div>
-        <p>Carregando sistema...</p>
+
+        <p>
+            Carregando sistema...
+        </p>
     </div>
 
-    <div id="sistema" hidden>
+    <!-- Aplicação principal -->
+    <div
+        id="sistema"
+        hidden>
+
+        <!-- Cabeçalho -->
         <header class="header">
             <div>
                 <div class="brand">
-                    <span class="brand-icon">🚛</span>
-                    <h1>BETAXLOG</h1>
+                    <span class="brand-icon">
+                        🚛
+                    </span>
+
+                    <h1>
+                        BETAXLOG
+                    </h1>
                 </div>
 
-                <small id="infoUltimoBackup" class="backup-info">
+                <small
+                    id="infoUltimoBackup"
+                    class="backup-info">
                     Conectando ao Supabase...
                 </small>
             </div>
 
             <div class="header-actions">
-                <span id="usuarioAtual" class="user-badge"></span>
+                <span
+                    id="usuarioAtual"
+                    class="user-badge">
+                </span>
 
                 <button
                     id="btnPainelAdmin"
@@ -57,6 +107,7 @@
             </div>
         </header>
 
+        <!-- Navegação -->
         <nav class="tabs">
             <button
                 id="btnAbaOperacional"
@@ -81,23 +132,39 @@
         </nav>
 
         <main>
-            <section id="viewOperacional" class="view">
+            <!-- =================================================
+                 ABA OPERACIONAL
+            ================================================== -->
+            <section
+                id="viewOperacional"
+                class="view">
+
                 <div class="grid-container">
+                    <!-- Montagem da escala -->
                     <article class="card">
                         <div class="card-title-flex">
                             <div>
-                                <span class="eyebrow">OPERAÇÃO</span>
-                                <h2>Montagem de escala</h2>
+                                <span class="eyebrow">
+                                    OPERAÇÃO
+                                </span>
+
+                                <h2>
+                                    Montagem de escala
+                                </h2>
                             </div>
 
-                            <span class="section-icon">📅</span>
+                            <span class="section-icon">
+                                📅
+                            </span>
                         </div>
 
                         <label for="dataEscala">
                             Data da escala
                         </label>
 
-                        <input id="dataEscala" type="date">
+                        <input
+                            id="dataEscala"
+                            type="date">
 
                         <div class="form-grid">
                             <div>
@@ -145,6 +212,21 @@
                         </button>
 
                         <button
+                            id="btnSalvarPrevia"
+                            class="btn btn-secondary btn-block"
+                            type="button">
+                            💾 Salvar prévia
+                        </button>
+
+                        <button
+                            id="btnConfirmarDefinitiva"
+                            class="btn btn-success btn-block"
+                            type="button"
+                            disabled>
+                            ✅ Confirmar definitiva
+                        </button>
+
+                        <button
                             id="btnExcluirEscala"
                             class="btn btn-danger btn-block"
                             type="button">
@@ -152,6 +234,7 @@
                         </button>
                     </article>
 
+                    <!-- Indisponibilidade -->
                     <article class="card">
                         <div class="card-title-flex">
                             <div>
@@ -159,14 +242,19 @@
                                     DISPONIBILIDADE
                                 </span>
 
-                                <h2>Indisponibilidade</h2>
+                                <h2>
+                                    Indisponibilidade
+                                </h2>
                             </div>
 
-                            <span class="section-icon">🚫</span>
+                            <span class="section-icon">
+                                🚫
+                            </span>
                         </div>
 
                         <p class="helper-text">
-                            Marque os motoristas indisponíveis na data escolhida.
+                            Marque os motoristas indisponíveis
+                            na data escolhida.
                         </p>
 
                         <input
@@ -181,6 +269,7 @@
                     </article>
                 </div>
 
+                <!-- Prévia da escala -->
                 <article
                     id="painelEscala"
                     class="card"
@@ -190,15 +279,24 @@
                         id="avisoPrevia"
                         class="notice"
                         hidden>
-                        Esta escala é apenas uma prévia. Salve antes de confirmar.
+                        Esta escala é uma prévia.
+                        Salve antes de confirmar.
                     </div>
 
                     <div id="areaCapturaImagem">
                         <div class="card-title-flex">
                             <div>
-                                <span class="eyebrow">BETAXLOG</span>
-                                <h2>Escala operacional</h2>
-                                <p id="dataSubtituloImagem"></p>
+                                <span class="eyebrow">
+                                    BETAXLOG
+                                </span>
+
+                                <h2>
+                                    Escala operacional
+                                </h2>
+
+                                <p
+                                    id="dataSubtituloImagem">
+                                </p>
                             </div>
 
                             <span
@@ -220,27 +318,14 @@
                                     </tr>
                                 </thead>
 
-                                <tbody id="tabelaEscalaBody"></tbody>
+                                <tbody
+                                    id="tabelaEscalaBody">
+                                </tbody>
                             </table>
                         </div>
                     </div>
 
                     <div class="toolbar">
-                        <button
-                            id="btnSalvarPrevia"
-                            class="btn btn-primary"
-                            type="button">
-                            💾 Salvar prévia
-                        </button>
-
-                        <button
-                            id="btnConfirmarDefinitiva"
-                            class="btn btn-success"
-                            type="button"
-                            disabled>
-                            ✅ Confirmar definitiva
-                        </button>
-
                         <button
                             id="btnBaixarImagem"
                             class="btn btn-secondary"
@@ -266,13 +351,26 @@
                 </article>
             </section>
 
-            <section id="viewMotoristas" class="view" hidden>
+            <!-- =================================================
+                 ABA MOTORISTAS
+            ================================================== -->
+            <section
+                id="viewMotoristas"
+                class="view"
+                hidden>
+
                 <div class="grid-container">
+                    <!-- Cadastro -->
                     <article class="card">
                         <div class="card-title-flex">
                             <div>
-                                <span class="eyebrow">CADASTRO</span>
-                                <h2>Novo motorista</h2>
+                                <span class="eyebrow">
+                                    CADASTRO
+                                </span>
+
+                                <h2>
+                                    Novo motorista
+                                </h2>
                             </div>
 
                             <span
@@ -347,9 +445,12 @@
                         </button>
                     </article>
 
+                    <!-- Lista -->
                     <article class="card">
                         <div class="card-title-flex">
-                            <h2>Motoristas cadastrados</h2>
+                            <h2>
+                                Motoristas cadastrados
+                            </h2>
 
                             <span
                                 id="contadorSelecionados"
@@ -388,20 +489,35 @@
                     </article>
                 </div>
 
+                <!-- Prioridade -->
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Prioridade e rodízio</h2>
-                        <span>⭐</span>
+                        <div>
+                            <span class="eyebrow">
+                                CONFIGURAÇÃO
+                            </span>
+
+                            <h2>
+                                Prioridade e rodízio
+                            </h2>
+                        </div>
+
+                        <span>
+                            ⭐
+                        </span>
                     </div>
 
                     <p class="helper-text">
-                        Motoristas prioritários ficam fora do rodízio automático.
+                        Motoristas prioritários ficam fora
+                        do rodízio automático.
                     </p>
 
                     <div class="dual-listbox">
                         <div class="dual-listbox-col">
                             <div class="dual-header">
-                                <strong>No rodízio</strong>
+                                <strong>
+                                    No rodízio
+                                </strong>
 
                                 <button
                                     id="btnTodosRodizio"
@@ -435,7 +551,9 @@
 
                         <div class="dual-listbox-col">
                             <div class="dual-header">
-                                <strong>Prioritários</strong>
+                                <strong>
+                                    Prioritários
+                                </strong>
 
                                 <button
                                     id="btnTodosPrioritarios"
@@ -454,26 +572,29 @@
                 </article>
             </section>
 
-            <section id="viewRelatorios" class="view" hidden>
+            <!-- =================================================
+                 ABA RELATÓRIOS
+            ================================================== -->
+            <section
+                id="viewRelatorios"
+                class="view"
+                hidden>
+
                 <article class="card">
                     <div class="card-title-flex">
-                        <h2>Filtros do relatório</h2>
+                        <div>
+                            <span class="eyebrow">
+                                INDICADORES
+                            </span>
 
-                        <div class="toolbar">
-                            <button
-                                id="btnGerarRelatorio"
-                                class="btn btn-primary"
-                                type="button">
-                                🔍 Gerar relatório
-                            </button>
-
-                            <button
-                                id="btnExportarPDF"
-                                class="btn btn-secondary"
-                                type="button">
-                                📄 PDF
-                            </button>
+                            <h2>
+                                Relatórios operacionais
+                            </h2>
                         </div>
+
+                        <span>
+                            📊
+                        </span>
                     </div>
 
                     <div class="form-grid">
@@ -502,7 +623,9 @@
                                 Período rápido
                             </label>
 
-                            <select id="filtroAtalhoPeriodo">
+                            <select
+                                id="filtroAtalhoPeriodo">
+
                                 <option value="">
                                     Personalizado
                                 </option>
@@ -511,58 +634,106 @@
                                     Mês atual
                                 </option>
 
-                                <option value="sete_dias">
+                                <option value="semanal">
                                     Últimos 7 dias
                                 </option>
 
-                                <option value="seis_meses">
+                                <option value="semestral">
                                     Últimos 6 meses
                                 </option>
 
-                                <option value="ano_atual">
+                                <option value="anual">
                                     Este ano
                                 </option>
                             </select>
                         </div>
                     </div>
+
+                    <div class="toolbar">
+                        <button
+                            id="btnGerarRelatorio"
+                            class="btn btn-primary"
+                            type="button">
+                            🔍 Gerar relatório
+                        </button>
+
+                        <button
+                            id="btnExportarPDF"
+                            class="btn btn-secondary"
+                            type="button">
+                            📄 PDF
+                        </button>
+                    </div>
                 </article>
 
                 <div class="kpi-container">
                     <article class="kpi-card">
-                        <h4>Total de vagas</h4>
-                        <strong id="kpiTotalRotas">0</strong>
+                        <h4>
+                            Total de vagas
+                        </h4>
+
+                        <strong id="kpiTotalRotas">
+                            0
+                        </strong>
                     </article>
 
                     <article class="kpi-card">
-                        <h4>Rotas concluídas</h4>
-                        <strong id="kpiRotasAtivas">0</strong>
+                        <h4>
+                            Rotas concluídas
+                        </h4>
+
+                        <strong id="kpiRotasAtivas">
+                            0
+                        </strong>
                     </article>
 
                     <article class="kpi-card">
-                        <h4>Rotas canceladas</h4>
-                        <strong id="kpiRotasCanceladas">0</strong>
+                        <h4>
+                            Rotas canceladas
+                        </h4>
+
+                        <strong id="kpiRotasCanceladas">
+                            0
+                        </strong>
                     </article>
 
                     <article class="kpi-card">
-                        <h4>Taxa de sucesso</h4>
-                        <strong id="kpiTaxaSucesso">0%</strong>
+                        <h4>
+                            Taxa de sucesso
+                        </h4>
+
+                        <strong id="kpiTaxaSucesso">
+                            0%
+                        </strong>
                     </article>
                 </div>
 
                 <div class="grid-container">
                     <article class="card chart-card">
-                        <h2>Evolução das escalas</h2>
-                        <canvas id="chartEvolucao"></canvas>
+                        <h2>
+                            Evolução das escalas
+                        </h2>
+
+                        <canvas
+                            id="chartEvolucao">
+                        </canvas>
                     </article>
 
                     <article class="card chart-card">
-                        <h2>Distribuição por veículo</h2>
-                        <canvas id="chartVeiculos"></canvas>
+                        <h2>
+                            Distribuição por veículo
+                        </h2>
+
+                        <canvas
+                            id="chartVeiculos">
+                        </canvas>
                     </article>
                 </div>
 
                 <article class="card">
-                    <h2>Ranking de motoristas</h2>
+                    <h2>
+                        Ranking de motoristas
+                    </h2>
 
                     <div class="table-wrapper">
                         <table class="data-table">
@@ -576,10 +747,12 @@
                                 </tr>
                             </thead>
 
-                            <tbody id="tabelaRankingBody">
+                            <tbody
+                                id="tabelaRankingBody">
                                 <tr>
                                     <td colspan="5">
-                                        Gere o relatório para visualizar os dados.
+                                        Gere o relatório para
+                                        visualizar os dados.
                                     </td>
                                 </tr>
                             </tbody>
@@ -590,43 +763,67 @@
         </main>
     </div>
 
+    <!-- =======================================================
+         MODAL DE EDIÇÃO DE MOTORISTA
+    ======================================================== -->
     <div
         id="modalEditarMotorista"
         class="modal-overlay"
         hidden>
-        <div class="modal-content">
+
+        <form
+            id="formEditarMotorista"
+            class="modal-content">
+
             <div class="card-title-flex">
-                <h2>Editar motorista</h2>
+                <h2>
+                    Editar motorista
+                </h2>
 
                 <button
-                    id="btnFecharEdicao"
-                    class="btn btn-danger btn-icon"
+                    id="btnFecharEdicaoMotorista"
+                    class="btn btn-danger"
                     type="button">
                     ✕
                 </button>
             </div>
 
-            <input id="editarMotoristaId" type="hidden">
+            <input
+                id="editarMotoristaId"
+                type="hidden">
 
-            <label for="editarNomeMotorista">
+            <label for="editarMotoristaNome">
                 Nome completo
             </label>
 
-            <input id="editarNomeMotorista" type="text">
+            <input
+                id="editarMotoristaNome"
+                type="text"
+                maxlength="120"
+                required>
 
-            <label for="editarTelMotorista">
+            <label for="editarMotoristaTelefone">
                 Telefone
             </label>
 
-            <input id="editarTelMotorista" type="tel">
+            <input
+                id="editarMotoristaTelefone"
+                type="tel"
+                maxlength="20">
 
-            <label for="editarTipoVeiculo">
+            <label for="editarMotoristaTipo">
                 Tipo de veículo
             </label>
 
-            <select id="editarTipoVeiculo">
-                <option value="Utilitário">Utilitário</option>
-                <option value="Van">Van</option>
+            <select id="editarMotoristaTipo">
+                <option value="Utilitário">
+                    Utilitário
+                </option>
+
+                <option value="Van">
+                    Van
+                </option>
+
                 <option value="Carro de Passeio">
                     Carro de Passeio
                 </option>
@@ -634,82 +831,95 @@
 
             <div class="toolbar">
                 <button
-                    id="btnSalvarEdicao"
+                    id="btnSalvarEdicaoMotorista"
                     class="btn btn-primary"
-                    type="button">
+                    type="submit">
                     Salvar
                 </button>
 
                 <button
-                    id="btnCancelarEdicao"
+                    id="btnCancelarEdicaoMotorista"
                     class="btn btn-secondary"
                     type="button">
                     Cancelar
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 
+    <!-- =======================================================
+         MODAL ADMINISTRATIVO
+    ======================================================== -->
     <div
         id="modalAdmin"
         class="modal-overlay"
         hidden>
-        <div class="modal-content modal-large">
+
+        <div class="modal-content admin-modal">
             <div class="card-title-flex">
                 <div>
-                    <span class="eyebrow">SEGURANÇA</span>
-                    <h2>Painel administrativo</h2>
+                    <span class="eyebrow">
+                        ADMINISTRAÇÃO
+                    </span>
+
+                    <h2>
+                        Painel administrativo
+                    </h2>
                 </div>
 
                 <button
                     id="btnFecharAdmin"
-                    class="btn btn-danger btn-icon"
+                    class="btn btn-danger"
                     type="button">
                     ✕
                 </button>
             </div>
 
-            <div class="admin-tabs">
+            <div class="tabs admin-tabs">
                 <button
-                    class="admin-tab active"
+                    class="tab-btn active"
                     data-admin-tab="usuarios"
                     type="button">
                     Usuários
                 </button>
 
                 <button
-                    class="admin-tab"
+                    class="tab-btn"
                     data-admin-tab="motoristas"
                     type="button">
                     Motoristas arquivados
                 </button>
 
                 <button
-                    class="admin-tab"
+                    class="tab-btn"
                     data-admin-tab="escalas"
                     type="button">
                     Escalas arquivadas
                 </button>
 
                 <button
-                    class="admin-tab"
+                    class="tab-btn"
                     data-admin-tab="auditoria"
                     type="button">
                     Auditoria
                 </button>
             </div>
 
+            <!-- Usuários -->
             <section
                 id="adminUsuarios"
                 class="admin-section">
-                <div class="admin-toolbar">
-                    <h3>Usuários cadastrados</h3>
+
+                <div class="card-title-flex">
+                    <h3>
+                        Usuários do sistema
+                    </h3>
 
                     <button
                         id="btnNovoUsuario"
                         class="btn btn-primary"
                         type="button">
-                        ➕ Novo usuário
+                        + Novo usuário
                     </button>
                 </div>
 
@@ -719,11 +929,15 @@
                 </div>
             </section>
 
+            <!-- Motoristas arquivados -->
             <section
                 id="adminMotoristas"
                 class="admin-section"
                 hidden>
-                <h3>Motoristas arquivados</h3>
+
+                <h3>
+                    Motoristas arquivados
+                </h3>
 
                 <div
                     id="listaMotoristasExcluidos"
@@ -731,11 +945,15 @@
                 </div>
             </section>
 
+            <!-- Escalas arquivadas -->
             <section
                 id="adminEscalas"
                 class="admin-section"
                 hidden>
-                <h3>Escalas arquivadas</h3>
+
+                <h3>
+                    Escalas arquivadas
+                </h3>
 
                 <div
                     id="listaEscalasExcluidas"
@@ -743,11 +961,15 @@
                 </div>
             </section>
 
+            <!-- Auditoria -->
             <section
                 id="adminAuditoria"
                 class="admin-section"
                 hidden>
-                <h3>Log de auditoria</h3>
+
+                <h3>
+                    Log de auditoria
+                </h3>
 
                 <div class="table-wrapper">
                     <table class="data-table">
@@ -760,62 +982,108 @@
                             </tr>
                         </thead>
 
-                        <tbody id="tabelaAuditoriaBody"></tbody>
+                        <tbody
+                            id="tabelaAuditoriaBody">
+                        </tbody>
                     </table>
                 </div>
             </section>
         </div>
     </div>
 
+    <!-- =======================================================
+         MODAL DE NOVO USUÁRIO
+    ======================================================== -->
     <div
         id="modalNovoUsuario"
         class="modal-overlay"
         hidden>
-        <div class="modal-content">
+
+        <form
+            id="formNovoUsuario"
+            class="modal-content">
+
             <div class="card-title-flex">
-                <h2>Novo usuário</h2>
+                <h2>
+                    Novo usuário
+                </h2>
 
                 <button
                     id="btnFecharNovoUsuario"
-                    class="btn btn-danger btn-icon"
+                    class="btn btn-danger"
                     type="button">
                     ✕
                 </button>
             </div>
 
             <p class="helper-text">
-                A criação do usuário precisa ser feita pelo Supabase Auth.
-                Este formulário cria o perfil administrativo.
+                Informe apenas nome, e-mail, senha e perfil.
+                O UUID será criado automaticamente pelo Supabase.
             </p>
 
-            <label for="novoUsuarioNome">Nome</label>
-            <input id="novoUsuarioNome" type="text">
-
-            <label for="novoUsuarioEmail">E-mail/login</label>
-            <input id="novoUsuarioEmail" type="email">
-
-            <label for="novoUsuarioRole">Perfil de acesso</label>
-            <select id="novoUsuarioRole">
-                <option value="admin">Administrador</option>
-                <option value="operador">Operador</option>
-                <option value="usuario">Usuário</option>
-            </select>
-
-            <label for="novoUsuarioId">
-                UUID do usuário criado no Supabase Auth
+            <label for="novoUsuarioNome">
+                Nome
             </label>
 
             <input
-                id="novoUsuarioId"
+                id="novoUsuarioNome"
                 type="text"
-                placeholder="Cole o UUID do usuário">
+                maxlength="120"
+                autocomplete="name"
+                placeholder="Nome completo"
+                required>
+
+            <label for="novoUsuarioEmail">
+                E-mail/login
+            </label>
+
+            <input
+                id="novoUsuarioEmail"
+                type="email"
+                maxlength="180"
+                autocomplete="email"
+                placeholder="usuario@empresa.com"
+                required>
+
+            <label for="novoUsuarioSenha">
+                Senha inicial
+            </label>
+
+            <input
+                id="novoUsuarioSenha"
+                type="password"
+                minlength="8"
+                autocomplete="new-password"
+                placeholder="Mínimo de 8 caracteres"
+                required>
+
+            <label for="novoUsuarioRole">
+                Perfil de acesso
+            </label>
+
+            <select
+                id="novoUsuarioRole"
+                required>
+
+                <option value="operador">
+                    Operador
+                </option>
+
+                <option value="usuario">
+                    Usuário
+                </option>
+
+                <option value="admin">
+                    Administrador
+                </option>
+            </select>
 
             <div class="toolbar">
                 <button
                     id="btnSalvarNovoUsuario"
                     class="btn btn-primary"
-                    type="button">
-                    Salvar perfil
+                    type="submit">
+                    Criar usuário
                 </button>
 
                 <button
@@ -825,9 +1093,13 @@
                     Cancelar
                 </button>
             </div>
-        </div>
+        </form>
     </div>
 
-    <div id="toastContainer" class="toast-container"></div>
+    <!-- Notificações -->
+    <div
+        id="toastContainer"
+        class="toast-container">
+    </div>
 </body>
 </html>
