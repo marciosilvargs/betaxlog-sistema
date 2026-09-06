@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BETAXLOG - Gestão de Escalas</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <div id="appLoader" class="app-loader">
+        <div class="loader-spinner"></div>
+        <p>Carregando sistema...</p>
+    </div>
+
+    <header class="header">
+        <div>
+            <div class="brand">
+                <span class="brand-icon">🚛</span>
+                <h1>BETAXLOG</h1>
+            </div>
+
+            <span id="infoUltimoBackup" class="backup-info">
+                Conectando ao Supabase...
+            </span>
+        </div>
+
+        <div class="header-actions">
+            <span id="usuarioAtual" class="user-badge"></span>
+
+            <button
+                id="btnPainelAdmin"
+                class="btn btn-secondary"
+                type="button"
+                onclick="abrirModalAdmin()"
+                hidden>
+                ⚙️ Admin
+            </button>
+
+            <button
+                class="btn btn-danger"
+                type="button"
+                onclick="fazerLogout()">
+                🚪 Sair
+            </button>
+        </div>
+    </header>
+
+    <nav class="tabs" aria-label="Navegação principal">
+        <button
+            id="btnAbaOperacional"
+            class="tab-btn active"
+            type="button"
+            onclick="alternarAba('operacional')">
+            📋 Operacional
+        </button>
+
+        <button
+            id="btnAbaMotoristas"
+            class="tab-btn"
+            type="button"
+            onclick="alternarAba('motoristas')">
+            👥 Motoristas
+        </button>
+
+        <button
+            id="btnAbaRelatorios"
+            class="tab-btn"
+            type="button"
+            onclick="alternarAba('relatorios')">
+            📊 Relatórios
+        </button>
+    </nav>
+
+    <main>
+        <section id="viewOperacional" class="view">
+            <div class="grid-container">
+                <article class="card">
+                    <div class="card-title-flex">
+                        <h2>Montagem de escala</h2>
+                        <span>📅</span>
+                    </div>
+
+                    <label for="dataEscala">
+                        Data da escala
+                    </label>
+
+                    <input
+                        id="dataEscala"
+                        type="date">
+
+                    <div class="form-grid">
+                        <div>
+                            <label for="vagasUtilitario">
+                                Utilitários
+                            </label>
+
+                            <input
+                                id="vagasUtilitario"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value="0">
+                        </div>
+
+                        <div>
+                            <label for="vagasVan">
+                                Vans
+                            </label>
+
+                            <input
+                                id="vagasVan"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value="0">
+                        </div>
+
+                        <div>
+                            <label for="vagasPasseio">
+                                Passeio
+                            </label>
+
+                            <input
+                                id="vagasPasseio"
+                                type="number"
+                                min="0"
+                                step="1"
+                                value="0">
+                        </div>
+                    </div>
+
+                    <button
+                        class="btn btn-primary btn-block"
+                        type="button"
+                        onclick="gerarPrevia()">
+                        🔄 Gerar ou atualizar prévia
+                    </button>
+
+                    <button
+                        class="btn btn-danger btn-block"
+                        type="button"
+                        onclick="excluirEscalaAtual()">
+                        🗑️ Excluir escala
+                    </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-title-flex">
+                        <h2>Indisponibilidade</h2>
+                        <span>🚫</span>
+                    </div>
+
+                    <p class="helper-text">
+                        Marque os motoristas indisponíveis na data escolhida.
+                    </p>
+
+                    <div
+                        id="listaMotoristasIndisponiveis"
+                        class="motoristas-lista">
+                    </div>
+                </article>
+            </div>
+
+            <article
+                id="painelEscala"
+                class="card"
+                hidden>
+
+                <div id="areaCapturaImagem">
+                    <div class="card-title-flex">
+                        <div>
+                            <h2>Escala operacional</h2>
+                            <p id="dataSubtituloImagem"></p>
+                        </div>
+
+                        <span
+                            id="tagStatus"
+                            class="badge-status badge-previa">
+                            PRÉVIA
+                        </span>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>DSP</th>
+                                    <th>Motorista</th>
+                                    <th>Veículo</th>
+                                    <th>Onda</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tabelaEscalaBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <button
+                        class="btn btn-success"
+                        type="button"
+                        onclick="confirmarDefinitiva()">
+                        ✅ Confirmar definitiva
+                    </button>
+
+                    <button
+                        class="btn btn-secondary"
+                        type="button"
+                        onclick="salvarPrevia()">
+                        💾 Salvar prévia
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        type="button"
+                        onclick="compartilharWhatsAppTexto()">
+                        📢 WhatsApp
+                    </button>
+
+                    <button
+                        class="btn btn-secondary"
+                        type="button"
+                        onclick="gerarImagemEscalaECompartilhar()">
+                        📸 Baixar imagem
+                    </button>
+
+                    <button
+                        class="btn btn-success"
+                        type="button"
+                        onclick="exportarExcel()">
+                        📊 Exportar Excel
+                    </button>
+                </div>
+            </article>
+        </section>
+
+        <section id="viewMotoristas" class="view" hidden>
+            <div class="grid-container">
+                <article class="card">
+                    <div class="card-title-flex">
+                        <h2>Cadastrar motorista</h2>
+
+                        <span
+                            id="contadorTotalMotoristas"
+                            class="badge-contador">
+                            Total: 0
+                        </span>
+                    </div>
+
+                    <label for="nomeMotorista">
+                        Nome completo
+                    </label>
+
+                    <input
+                        id="nomeMotorista"
+                        type="text"
+                        maxlength="100"
+                        autocomplete="off">
+
+                    <label for="telMotorista">
+                        Telefone com DDD
+                    </label>
+
+                    <input
+                        id="telMotorista"
+                        type="tel"
+                        maxlength="20"
+                        autocomplete="off">
+
+                    <label for="tipoVeiculo">
+                        Tipo de veículo
+                    </label>
+
+                    <select id="tipoVeiculo">
+                        <option value="Utilitário">
+                            Utilitário
+                        </option>
+
+                        <option value="Van">
+                            Van
+                        </option>
+
+                        <option value="Carro de Passeio">
+                            Carro de Passeio
+                        </option>
+                    </select>
+
+                    <button
+                        class="btn btn-primary btn-block"
+                        type="button"
+                        onclick="cadastrarMotorista()">
+                        ➕ Cadastrar motorista
+                    </button>
+
+                    <label for="filtroMotorista">
+                        Pesquisar motorista
+                    </label>
+
+                    <input
+                        id="filtroMotorista"
+                        type="search"
+                        oninput="renderizarMotoristas()">
+
+                    <div
+                        id="listaMotoristasCheck"
+                        class="motoristas-lista">
+                    </div>
+
+                    <label class="btn btn-secondary file-button">
+                        📂 Importar Excel
+
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onchange="importarExcel(event)"
+                            hidden>
+                    </label>
+
+                    <button
+                        class="btn btn-success btn-block"
+                        type="button"
+                        onclick="exportarBackupMotoristas()">
+                        💾 Exportar cadastro
+                    </button>
+                </article>
+
+                <article class="card">
+                    <div class="card-title-flex">
+                        <h2>Prioridade e rodízio</h2>
+                        <span>⭐</span>
+                    </div>
+
+                    <p class="helper-text">
+                        Motoristas prioritários ficam fora do rodízio automático.
+                    </p>
+
+                    <div class="dual-listbox">
+                        <div class="dual-listbox-col">
+                            <div class="dual-header">
+                                <label for="listaRodizio">
+                                    No rodízio
+                                </label>
+
+                                <button
+                                    class="link-btn"
+                                    type="button"
+                                    onclick="selecionarTodos('listaRodizio')">
+                                    Todos
+                                </button>
+                            </div>
+
+                            <select
+                                id="listaRodizio"
+                                multiple>
+                            </select>
+                        </div>
+
+                        <div class="dual-listbox-botoes">
+                            <button
+                                class="btn btn-primary"
+                                type="button"
+                                onclick="moverParaPrioridade()">
+                                ➡️
+                            </button>
+
+                            <button
+                                class="btn btn-secondary"
+                                type="button"
+                                onclick="moverParaRodizio()">
+                                ⬅️
+                            </button>
+                        </div>
+
+                        <div class="dual-listbox-col">
+                            <div class="dual-header">
+                                <label for="listaPrioritarios">
+                                    Prioritários
+                                </label>
+
+                                <button
+                                    class="link-btn"
+                                    type="button"
+                                    onclick="selecionarTodos('listaPrioritarios')">
+                                    Todos
+                                </button>
+                            </div>
+
+                            <select
+                                id="listaPrioritarios"
+                                multiple>
+                            </select>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section id="viewRelatorios" class="view" hidden>
+            <article class="card">
+                <h2>Filtros do relatório</h2>
+
+                <div class="form-grid">
+                    <div>
+                        <label for="relatorioDataInicio">
+                            Data inicial
+                        </label>
+
+                        <input
+                            id="relatorioDataInicio"
+                            type="date">
+                    </div>
+
+                    <div>
+                        <label for="relatorioDataFim">
+                            Data final
+                        </label>
+
+                        <input
+                            id="relatorioDataFim"
+                            type="date">
+                    </div>
+
+                    <div>
+                        <label for="filtroAtalhoPeriodo">
+                            Período rápido
+                        </label>
+
+                        <select
+                            id="filtroAtalhoPeriodo"
+                            onchange="aplicarAtalhoPeriodo()">
+                            <option value="">
+                                Personalizado
+                            </option>
+
+                            <option value="mes_atual">
+                                Mês atual
+                            </option>
+
+                            <option value="semanal">
+                                Últimos 7 dias
+                            </option>
+
+                            <option value="semestral">
+                                Últimos 6 meses
+                            </option>
+
+                            <option value="anual">
+                                Este ano
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <button
+                        class="btn btn-primary"
+                        type="button"
+                        onclick="gerarRelatorioHistorico()">
+                        🔍 Gerar relatório
+                    </button>
+
+                    <button
+                        class="btn btn-secondary"
+                        type="button"
+                        onclick="exportarRelatorioPDF()">
+                        📄 PDF
+                    </button>
+                </div>
+            </article>
+
+            <div class="kpi-container">
+                <article class="kpi-card">
+                    <h4>Total de vagas</h4>
+                    <strong id="kpiTotalRotas">0</strong>
+                </article>
+
+                <article class="kpi-card">
+                    <h4>Rotas concluídas</h4>
+                    <strong id="kpiRotasAtivas">0</strong>
+                </article>
+
+                <article class="kpi-card">
+                    <h4>Rotas canceladas</h4>
+                    <strong id="kpiRotasCanceladas">0</strong>
+                </article>
+
+                <article class="kpi-card">
+                    <h4>Taxa de sucesso</h4>
+                    <strong id="kpiTaxaSucesso">0%</strong>
+                </article>
+            </div>
+
+            <div class="grid-container">
+                <article class="card chart-card">
+                    <h2>Evolução das escalas</h2>
+                    <canvas id="chartEvolucao"></canvas>
+                </article>
+
+                <article class="card chart-card">
+                    <h2>Distribuição por veículo</h2>
+                    <canvas id="chartVeiculos"></canvas>
+                </article>
+            </div>
+
+            <article class="card">
+                <h2>Ranking de motoristas</h2>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Motorista</th>
+                                <th>Veículo</th>
+                                <th>Escalas</th>
+                                <th>Cancelamentos</th>
+                                <th>Presença</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="tabelaRankingBody">
+                            <tr>
+                                <td colspan="5">
+                                    Gere o relatório para visualizar os dados.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <div
+        id="modalEdicao"
+        class="modal-overlay"
+        hidden>
+
+        <div class="modal-content">
+            <h2>Editar motorista</h2>
+
+            <input
+                id="editMotoristaId"
+                type="hidden">
+
+            <label for="editNomeMotorista">
+                Nome completo
+            </label>
+
+            <input
+                id="editNomeMotorista"
+                type="text"
+                maxlength="100">
+
+            <label for="editTelMotorista">
+                Telefone
+            </label>
+
+            <input
+                id="editTelMotorista"
+                type="tel"
+                maxlength="20">
+
+            <label for="editTipoVeiculo">
+                Tipo de veículo
+            </label>
+
+            <select id="editTipoVeiculo">
+                <option value="Utilitário">
+                    Utilitário
+                </option>
+
+                <option value="Van">
+                    Van
+                </option>
+
+                <option value="Carro de Passeio">
+                    Carro de Passeio
+                </option>
+            </select>
+
+            <div class="toolbar">
+                <button
+                    class="btn btn-success"
+                    type="button"
+                    onclick="salvarEdicaoMotorista()">
+                    Salvar
+                </button>
+
+                <button
+                    class="btn btn-secondary"
+                    type="button"
+                    onclick="fecharModalEdicao()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="modalAdmin"
+        class="modal-overlay"
+        hidden>
+
+        <div class="modal-content">
+            <h2>Painel administrativo</h2>
+
+            <p class="helper-text">
+                O controle de usuários é feito pelo Supabase Authentication.
+            </p>
+
+            <p id="listaUsuariosCadastrados"></p>
+
+            <button
+                class="btn btn-danger btn-block"
+                type="button"
+                onclick="apagarTodoOSistema()">
+                🗑️ Apagar dados operacionais
+            </button>
+
+            <button
+                class="btn btn-secondary btn-block"
+                type="button"
+                onclick="fecharModalAdmin()">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+</body>
+</html>
